@@ -22,6 +22,10 @@ import {
 } from "lucide-react-native";
 import { useShellTopBar } from "../../lib/AppShell";
 import { DeutschForgeMascot } from "../../components/DeutschForgeMascot";
+import { useAppMode } from "../../lib/appMode";
+import LearnScreen from "../learn";
+import GrammarScreen from "../grammar";
+import ExamNavigator from "../goethe-exam/ExamNavigator";
 
 const SCREEN_W = Dimensions.get("window").width;
 
@@ -444,7 +448,15 @@ const GenderBreakdown = memo(function GenderBreakdown({ data, t }: { data: Recor
 });
 
 // ─── Main Home Screen ──────────────────────────────────────────────────────────
-export default function HomeScreen() {
+export default function DashboardScreen() {
+  const { mode } = useAppMode();
+  if (mode === "learn")   return <LearnScreen />;
+  if (mode === "grammar") return <GrammarScreen />;
+  if (mode === "exam")    return <ExamNavigator />;
+  return <HomeScreen />;
+}
+
+function HomeScreen() {
   const router = useRouter();
   const { theme: t } = useTheme();
   const { data: session } = authClient.useSession();

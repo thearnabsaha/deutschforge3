@@ -826,8 +826,9 @@ export default function WordsScreen() {
       <TouchableOpacity
         style={[screenStyles.addFab, { backgroundColor: t.primary }]}
         onPress={() => setShowAdd(true)}
+        activeOpacity={0.85}
       >
-        <Plus size={16} color="#fff" strokeWidth={2.5} />
+        <Plus size={15} color="#fff" strokeWidth={2.5} />
         <Text style={screenStyles.addFabText}>Add</Text>
       </TouchableOpacity>
     ),
@@ -849,27 +850,26 @@ export default function WordsScreen() {
         {/* Header */}
         <View style={screenStyles.header}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Text style={[screenStyles.title, { color: t.text }]}>Word List</Text>
+            <Text style={[screenStyles.wordCountInline, { color: t.textMuted }]}>
+              {wordList.length} word{wordList.length !== 1 ? "s" : ""}
+            </Text>
             {words.isFetching && <ActivityIndicator size="small" color={t.primary} />}
           </View>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <TouchableOpacity
-              style={[
-                screenStyles.filtersBtn,
-                { borderColor: t.border, backgroundColor: t.surface },
-                filtersActive && { backgroundColor: t.text, borderColor: t.text },
-              ]}
-              onPress={() => setShowAdvanced((v) => !v)}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                <Filter size={13} color={filtersActive ? t.background : t.textSecondary} strokeWidth={2} />
-                <Text style={[screenStyles.filtersBtnText, { color: filtersActive ? t.background : t.textSecondary }]}>
-                  Filters{advancedActiveCount > 0 ? ` (${advancedActiveCount})` : ""}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-          </View>
+          <TouchableOpacity
+            style={[
+              screenStyles.filtersBtn,
+              { borderColor: t.border, backgroundColor: t.surface },
+              filtersActive && { backgroundColor: t.text, borderColor: t.text },
+            ]}
+            onPress={() => setShowAdvanced((v) => !v)}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Filter size={13} color={filtersActive ? t.background : t.textSecondary} strokeWidth={2} />
+              <Text style={[screenStyles.filtersBtnText, { color: filtersActive ? t.background : t.textSecondary }]}>
+                Filters{advancedActiveCount > 0 ? ` (${advancedActiveCount})` : ""}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Search */}
@@ -912,12 +912,13 @@ export default function WordsScreen() {
         />
 
         {/* Info row */}
-        <View style={screenStyles.infoRow}>
-          <Text style={[screenStyles.wordCount, { color: t.textMuted }]}>
-            {wordList.length} word{wordList.length !== 1 ? "s" : ""}
-            {wordList.length > 0 ? " · tap to flip" : ""}
-          </Text>
-        </View>
+        {wordList.length > 0 && (
+          <View style={screenStyles.infoRow}>
+            <Text style={[screenStyles.wordCount, { color: t.textMuted }]}>
+              tap any word to flip
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* ─── Scrollable word list ─── */}
@@ -1065,21 +1066,22 @@ const modalStyles = StyleSheet.create({
 
 const screenStyles = StyleSheet.create({
   safe: { flex: 1 },
-  stickyTop: { paddingBottom: 4, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 3, zIndex: 10 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
+  stickyTop: { paddingBottom: 4 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   title: { fontSize: 22, fontWeight: "900" },
-  addFab: { borderRadius: 20, paddingHorizontal: 18, paddingVertical: 10, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4 },
-  addFabText: { color: "#fff", fontWeight: "800", fontSize: 15 },
-  filtersBtn: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1.5 },
+  wordCountInline: { fontSize: 13, fontWeight: "700" },
+  addFab: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 9 },
+  addFabText: { color: "#fff", fontWeight: "800", fontSize: 14 },
+  filtersBtn: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1.5 },
   filtersBtnText: { fontWeight: "700", fontSize: 13 },
   searchContainer: { paddingHorizontal: 16, paddingBottom: 8 },
   searchInput: { borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, fontSize: 15, borderWidth: 1.5 },
-  infoRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 5 },
+  infoRow: { paddingHorizontal: 16, paddingBottom: 4 },
   wordCount: { fontSize: 12, fontWeight: "600" },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
   listContent: { paddingHorizontal: 16, paddingBottom: 24, paddingTop: 8 },
   emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  emptyTitle: { fontSize: 22, fontWeight: "800", marginBottom: 8 },
+  emptyTitle: { fontSize: 22, fontWeight: "900", marginBottom: 8 },
   emptySub: { fontSize: 15, textAlign: "center", marginBottom: 24 },
   emptyBtn: { borderRadius: 20, paddingVertical: 14, paddingHorizontal: 28 },
   emptyBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },

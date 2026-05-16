@@ -257,11 +257,6 @@ export default function ProfileScreen() {
         <Text style={[styles.headerTitle, { color: t.text }]}>Profile</Text>
       </>
     ),
-    right: (
-      <TouchableOpacity onPress={handleSettings} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-        <Settings size={22} color={t.textSecondary} strokeWidth={2} />
-      </TouchableOpacity>
-    ),
     accent: t.primary,
   });
 
@@ -273,11 +268,6 @@ export default function ProfileScreen() {
           <DeutschForgeMascot mood="happy" size={100} style={{ marginBottom: 8 }} />
           <Text style={[styles.userName, { color: t.text }]}>{session?.user?.name ?? "Learner"}</Text>
           <Text style={[styles.userEmail, { color: t.textMuted }]}>{session?.user?.email}</Text>
-          <View style={[styles.levelBadge, { backgroundColor: t.accent }]}>
-            <Text style={[styles.levelBadgeText, { color: t.dark ? "#fff" : "#1F1F1F" }]}>
-              Level {data?.level ?? 1} · {getLevelName(data?.level ?? 1)}
-            </Text>
-          </View>
         </View>
 
         {/* Nav Buttons */}
@@ -391,7 +381,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  headerTitle: { fontSize: 20, fontWeight: "800" },
+  headerTitle: { fontSize: 22, fontWeight: "900" },
   container: { padding: 16, paddingBottom: 40 },
 
   profileHeader: { alignItems: "center", marginBottom: 20, paddingTop: 8 },
@@ -436,7 +426,7 @@ const styles = StyleSheet.create({
   xpSub: { fontSize: 12 },
 
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  sectionTitle: { fontSize: 16, fontWeight: "800", marginBottom: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: "900", marginBottom: 12 },
   badgeCount: { fontSize: 13, fontWeight: "600" },
 
   statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 24 },

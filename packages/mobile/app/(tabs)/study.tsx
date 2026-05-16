@@ -402,6 +402,26 @@ export default function StudyScreen() {
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [examHistory, setExamHistory] = useState<ExamHistoryEntry[]>([]);
 
+  // ── Shell top bar (must be before any early returns) ──
+  useShellTopBar({
+    left: (
+      <>
+        <Layers size={22} color={t.primary} strokeWidth={2.5} />
+        <Text style={[styles.title, { color: t.text }]}>Study</Text>
+      </>
+    ),
+    right: (
+      <TouchableOpacity
+        style={[styles.createBtn, { backgroundColor: t.primary }]}
+        onPress={() => setShowCreate(true)}
+      >
+        <Plus size={16} color="#fff" strokeWidth={3} />
+        <Text style={styles.createBtnTxt}>Set</Text>
+      </TouchableOpacity>
+    ),
+    accent: t.primary,
+  });
+
   useEffect(() => {
     Promise.all([loadCustomSets(), loadCustomNames()]).then(([sets, names]) => {
       setCustomSets(sets);
@@ -533,25 +553,6 @@ export default function StudyScreen() {
       </View>
     );
   }
-
-  useShellTopBar({
-    left: (
-      <>
-        <Layers size={22} color={t.primary} strokeWidth={2.5} />
-        <Text style={[styles.title, { color: t.text }]}>Study</Text>
-      </>
-    ),
-    right: (
-      <TouchableOpacity
-        style={[styles.createBtn, { backgroundColor: t.primary }]}
-        onPress={() => setShowCreate(true)}
-      >
-        <Plus size={16} color="#fff" strokeWidth={3} />
-        <Text style={styles.createBtnTxt}>Set</Text>
-      </TouchableOpacity>
-    ),
-    accent: t.primary,
-  });
 
   return (
     <View style={[styles.safe, { backgroundColor: t.background }]}>
