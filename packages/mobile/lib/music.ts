@@ -39,11 +39,18 @@ const CLICK_SOURCES: Record<Exclude<ClickSoundType, "none">, any> = {
   soft: require("../assets/sounds/soft.mp3"),
 };
 
+const FX_SOURCES = {
+  correct: require("../assets/sounds/correct.mp3"),
+  wrong: require("../assets/sounds/wrong.mp3"),
+  complete: require("../assets/sounds/complete.mp3"),
+};
+
 type Listener = () => void;
 
 class MusicPlayer {
   private sound: Audio.Sound | null = null;
   private clickSounds: Partial<Record<Exclude<ClickSoundType, "none">, Audio.Sound>> = {};
+  private fxSounds: Partial<Record<keyof typeof FX_SOURCES, Audio.Sound>> = {};
   private _clickPlaying = false; // guard: prevent overlapping click sounds
   private _trackKey: TrackKey = "calm";
   private _volume: number = 0.5;
@@ -101,6 +108,19 @@ class MusicPlayer {
             shouldPlay: false,
           });
           this.clickSounds[type] = sound;
+        } catch (_) {}
+      })
+    );
+
+    // Load FX sounds
+    await Promise.all(
+      (["correct", "wrong", "complete"] as const).map(async (key) => {
+        try {
+          const { sound } = await Audio.Sound.createAsync(FX_SOURCES[key], {
+            volume: 1.0,
+            shouldPlay: false,
+          });
+          this.fxSounds[key] = sound;
         } catch (_) {}
       })
     );
@@ -204,6 +224,16 @@ class MusicPlayer {
     this._clickSoundType = type;
     Storage.setItem(STORAGE_KEY_CLICK_TYPE, type);
     this.notify();
+  }
+
+  async playFx(key: "correct" | "wrong" | "complete") {
+    const sound = this.fxSounds[key];
+    if (!sound) return;
+    try {
+      await sound.setPositionAsync(0);
+      await sound.setVolumeAsync(1.0);
+      await sound.playAsync();
+    } catch (_) {}
   }
 
   async playClick() {

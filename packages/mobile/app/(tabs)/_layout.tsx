@@ -5,11 +5,13 @@ import { Home, BookOpen, Library, User } from "lucide-react-native";
 import UnderConstruction from "./under-construction";
 import GrammarScreen from "../grammar";
 import ExamNavigator from "../goethe-exam/ExamNavigator";
+import LearnScreen from "../learn";
 
 export default function TabLayout() {
   const { theme: t } = useTheme();
   const { mode } = useAppMode();
 
+  if (mode === "learn") return <LearnScreen />;
   if (mode === "grammar") return <GrammarScreen />;
   if (mode === "exam") return <ExamNavigator />;
 

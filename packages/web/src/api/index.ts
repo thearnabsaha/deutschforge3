@@ -9,7 +9,7 @@ import { statsRoutes } from "./routes/stats";
 import { pronunciationRoutes } from "./routes/pronunciation";
 
 const corsOptions = cors({
-  origin: ["http://localhost:4200", "http://localhost:4300", "http://localhost:19006", "https://contributors-sen-events-famous.trycloudflare.com"],
+  origin: (origin) => origin, // allow all origins
   credentials: true,
   allowHeaders: ["Content-Type", "Authorization"],
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -21,14 +21,12 @@ const app = new Hono<AppEnv>()
   .on(["GET", "POST"], "/api/auth/*", async (c) => {
     const res = await auth.handler(c.req.raw);
     const origin = c.req.header("Origin") ?? "";
-    const allowed = ["http://localhost:4200", "http://localhost:4300", "http://localhost:19006"];
-    if (allowed.includes(origin)) {
-      const headers = new Headers(res.headers);
+    const headers = new Headers(res.headers);
+    if (origin) {
       headers.set("Access-Control-Allow-Origin", origin);
       headers.set("Access-Control-Allow-Credentials", "true");
-      return new Response(res.body, { status: res.status, headers });
     }
-    return res;
+    return new Response(res.body, { status: res.status, headers });
   })
   .basePath("api")
   .use("*", authMiddleware)

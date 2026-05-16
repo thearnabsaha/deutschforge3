@@ -30,7 +30,9 @@ import {
   X,
 } from "lucide-react-native";
 import { useTheme } from "../lib/theme";
-import { GRAMMAR_CHAPTERS, type GrammarTable } from "../lib/grammarData";
+import { GRAMMAR_CHAPTERS, A2_GRAMMAR_CHAPTERS, B1_GRAMMAR_CHAPTERS, type GrammarTable } from "../lib/grammarData";
+
+const ALL_CHAPTERS = [...GRAMMAR_CHAPTERS, ...A2_GRAMMAR_CHAPTERS, ...B1_GRAMMAR_CHAPTERS];
 import {
   recordChapterVisit,
   toggleChapterComplete,
@@ -641,10 +643,10 @@ export default function GrammarChapterScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const idx = GRAMMAR_CHAPTERS.findIndex((c) => c.id === id);
-  const chapter = GRAMMAR_CHAPTERS[idx];
-  const prev = idx > 0 ? GRAMMAR_CHAPTERS[idx - 1] : null;
-  const next = idx < GRAMMAR_CHAPTERS.length - 1 ? GRAMMAR_CHAPTERS[idx + 1] : null;
+  const idx = ALL_CHAPTERS.findIndex((c) => c.id === id);
+  const chapter = ALL_CHAPTERS[idx];
+  const prev = idx > 0 ? ALL_CHAPTERS[idx - 1] : null;
+  const next = idx < ALL_CHAPTERS.length - 1 ? ALL_CHAPTERS[idx + 1] : null;
 
   const [isDone, setIsDone] = useState(false);
   const [togglingDone, setTogglingDone] = useState(false);

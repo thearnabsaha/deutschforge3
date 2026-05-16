@@ -8,11 +8,12 @@ import {
   StyleSheet,
   Pressable,
 } from "react-native";
-import { BookOpen, PenLine, Target, Check, Clock } from "lucide-react-native";
+import { BookOpen, PenLine, Target, Check, Clock, GraduationCap } from "lucide-react-native";
 import { useTheme } from "./theme";
 import { useAppMode, MODE_CONFIGS, type AppMode } from "./appMode";
 
 function ModeIcon({ mode, size, color }: { mode: AppMode; size: number; color: string }) {
+  if (mode === "learn") return <GraduationCap size={size} color={color} strokeWidth={2.5} />;
   if (mode === "words") return <BookOpen size={size} color={color} strokeWidth={2.5} />;
   if (mode === "grammar") return <PenLine size={size} color={color} strokeWidth={2.5} />;
   return <Target size={size} color={color} strokeWidth={2.5} />;

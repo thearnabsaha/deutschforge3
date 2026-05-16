@@ -38,6 +38,198 @@ export interface GrammarChapter {
   aiPrompt: string;
 }
 
+// ─── A0: Grundlagen ───────────────────────────────────────────────────────────
+export const A0_GRAMMAR_CHAPTERS: GrammarChapter[] = [
+  {
+    id: "a0-ch01",
+    number: 1,
+    title: "German Sounds",
+    subtitle: "Pronunciation & Phonetics",
+    explanation:
+      "German pronunciation is very consistent — once you learn the rules, every word is pronounced exactly as written. Key sounds differ from English, especially the umlauts (ä, ö, ü) and the letter combinations ch, sch, and st.",
+    rule:
+      "ä = 'eh' like in 'bed' · ö = round lips and say 'e' · ü = round lips and say 'ee' · ch = soft 'kh' after e/i, guttural after a/o/u · sch = 'sh' · st/sp at start = 'sht'/'shp'",
+    table: {
+      headers: ["Letter/Combo", "Sound", "Example", "Meaning"],
+      rows: [
+        ["ä", "eh (like 'bed')", "Bär", "bear"],
+        ["ö", "ur (lips rounded)", "schön", "beautiful"],
+        ["ü", "ew (lips rounded)", "über", "over/above"],
+        ["ß (Eszett)", "ss", "Straße", "street"],
+        ["ch (after e/i)", "soft, like 'hue'", "ich", "I"],
+        ["ch (after a/o/u)", "guttural 'kh'", "Buch", "book"],
+        ["sch", "sh", "Schule", "school"],
+        ["sp / st (start)", "shp / sht", "sprechen / Stadt", "speak / city"],
+        ["ei", "eye", "Eis", "ice cream"],
+        ["ie", "ee", "lieben", "to love"],
+        ["eu / äu", "oy", "Freude", "joy"],
+      ],
+    },
+    notes: [
+      "German vowels are pure — no diphthong glide at the end (unlike English).",
+      "Every letter is pronounced. German has almost no silent letters.",
+      "The letter 'v' sounds like English 'f' in most German words (Vater = FAH-ter).",
+      "The letter 'w' sounds like English 'v' (Wasser = VAS-ser).",
+      "The letter 'z' sounds like 'ts' (Zeit = TSAIT).",
+    ],
+    examples: [
+      { de: "Ich heiße Anna.", en: "My name is Anna. (note: heiße has ß)" },
+      { de: "Schön, Sie kennenzulernen.", en: "Nice to meet you. (sch + ö)" },
+      { de: "Sprechen Sie Deutsch?", en: "Do you speak German? (sp = shp)" },
+      { de: "Die Straße ist lang.", en: "The street is long. (ß = ss)" },
+      { de: "Über den Wolken.", en: "Above the clouds. (ü sound)" },
+    ],
+    mistakes: [
+      "Pronouncing 'w' as English 'w' — it should sound like 'v'.",
+      "Pronouncing 'v' as English 'v' — it should sound like 'f' in most words.",
+      "Ignoring the umlaut dots (ä/ö/ü) — they completely change the vowel sound.",
+      "Treating 'ie' and 'ei' the same — 'ie' = ee, 'ei' = eye.",
+    ],
+    exercises: [
+      { prompt: "How do you pronounce the German letter 'w'?", answer: "Like English 'v'" },
+      { prompt: "What sound does 'sch' make?", answer: "sh (like 'sh' in 'shoe')" },
+      { prompt: "How do you pronounce 'ei'?", answer: "Like English 'eye' (as in 'Eis' = ice)" },
+      { prompt: "What does 'ß' (Eszett) sound like?", answer: "Like 'ss'" },
+      { prompt: "How is 'sp' pronounced at the start of a German word?", answer: "'shp' (like 'shp' in 'Sprechen')" },
+    ],
+    speakingPrompts: [
+      "Say these words aloud: Schule, sprechen, über, schön, Straße.",
+      "Practise: 'Ich spreche ein bisschen Deutsch.' (I speak a little German.)",
+      "Try tongue twisters: 'Fischers Fritze fischt frische Fische.'",
+    ],
+    summary:
+      "German spelling and pronunciation are highly consistent. Master the umlauts (ä, ö, ü), the ch/sch/ß sounds, and the w=v / v=f rule, and you can pronounce almost any German word correctly.",
+    aiPrompt:
+      "Quiz me on German pronunciation rules: umlauts, sch, ch, ei vs ie, w vs v, and ß. Give me words to pronounce and explain the rules when I get them wrong.",
+  },
+  {
+    id: "a0-ch02",
+    number: 2,
+    title: "The Alphabet",
+    subtitle: "Das Alphabet",
+    explanation:
+      "The German alphabet has 26 letters — the same as English — plus 4 extra characters: ä, ö, ü (umlauts) and ß (Eszett). Knowing the alphabet lets you spell your name, understand abbreviations, and look up words in a dictionary.",
+    rule:
+      "26 standard letters + ä, ö, ü, ß · Most letters sound different from English · Learn the alphabet song to memorise letter names · ß = 'ss', used in Switzerland as 'ss'",
+    table: {
+      headers: ["Letter", "German Name (approx.)", "Letter", "German Name (approx.)"],
+      rows: [
+        ["A a", "ah", "N n", "en"],
+        ["B b", "bay", "O o", "oh"],
+        ["C c", "tsay", "P p", "pay"],
+        ["D d", "day", "Q q", "koo"],
+        ["E e", "ay", "R r", "err"],
+        ["F f", "eff", "S s", "ess"],
+        ["G g", "gay", "T t", "tay"],
+        ["H h", "hah", "U u", "oo"],
+        ["I i", "ee", "V v", "fow"],
+        ["J j", "yot", "W w", "vay"],
+        ["K k", "kah", "X x", "iks"],
+        ["L l", "ell", "Y y", "üp-si-lon"],
+        ["M m", "em", "Z z", "tset"],
+        ["Ä ä", "ah-umlaut", "Ö ö", "oh-umlaut"],
+        ["Ü ü", "oo-umlaut", "ß", "ess-tset"],
+      ],
+    },
+    notes: [
+      "When spelling out loud, Germans say the letter names — e.g. your name 'Anna' = 'Ah-En-En-Ah'.",
+      "The letter J is pronounced 'yot' and sounds like English 'y' (ja = yes).",
+      "The letter Z sounds like 'ts' — Zeit (time) = TSAIT.",
+      "In Switzerland, ß is replaced by 'ss' — Straße becomes Strasse.",
+      "Umlauts (ä, ö, ü) are sometimes written as ae, oe, ue when special characters aren't available.",
+    ],
+    examples: [
+      { de: "Wie schreibt man das? — A-N-N-A", en: "How do you spell that? — A-N-N-A" },
+      { de: "Mein Name ist Schmidt: S-C-H-M-I-D-T", en: "My name is Schmidt: S-C-H-M-I-D-T" },
+      { de: "Das ist ein Ü — Ü wie Übung.", en: "That's a Ü — Ü as in Übung (exercise)." },
+      { de: "Z wie Zebra.", en: "Z as in Zebra." },
+    ],
+    mistakes: [
+      "Pronouncing J as English 'j' (jay) — it's 'yot', sounds like 'y'.",
+      "Pronouncing Z as English 'z' — it's 'ts'.",
+      "Forgetting that V sounds like 'f' in most German words.",
+      "Mixing up ä/a, ö/o, ü/u — the umlauts are distinct letters with different sounds.",
+    ],
+    exercises: [
+      { prompt: "Spell your first name using German letter names.", answer: "Practice saying each letter with its German pronunciation." },
+      { prompt: "What does the letter 'J' sound like in German?", answer: "'yot' — sounds like English 'y'" },
+      { prompt: "How many extra characters does German have beyond the standard 26?", answer: "4: ä, ö, ü, ß" },
+      { prompt: "What is the German name for the letter Z?", answer: "tset (sounds like 'ts')" },
+    ],
+    speakingPrompts: [
+      "Recite the German alphabet from A to Z.",
+      "Spell your full name using German letter names.",
+      "Spell these words: Deutsch, Schule, München.",
+    ],
+    summary:
+      "German uses the same 26 letters as English, plus ä, ö, ü, and ß. Key differences: J = y sound, Z = ts sound, V = f sound, W = v sound. The umlauts are completely separate letters — never skip the dots.",
+    aiPrompt:
+      "Help me practise the German alphabet. Give me words to spell out letter by letter using German letter names, and correct me if I use wrong letter names.",
+  },
+  {
+    id: "a0-ch03",
+    number: 3,
+    title: "Numbers 0–20",
+    subtitle: "Zahlen 0–20",
+    explanation:
+      "Numbers are essential from day one — for telling time, prices, ages, phone numbers, and addresses. German numbers follow a clear pattern after 12, making them easy to learn systematically.",
+    rule:
+      "0–12: unique words (learn by heart) · 13–19: add '-zehn' (ten) to the base number · Exception: 16 = sechzehn (not sechszehn), 17 = siebzehn (not siebenzehn) · 20 = zwanzig",
+    table: {
+      headers: ["Number", "German", "Number", "German"],
+      rows: [
+        ["0", "null", "11", "elf"],
+        ["1", "eins", "12", "zwölf"],
+        ["2", "zwei", "13", "dreizehn"],
+        ["3", "drei", "14", "vierzehn"],
+        ["4", "vier", "15", "fünfzehn"],
+        ["5", "fünf", "16", "sechzehn"],
+        ["6", "sechs", "17", "siebzehn"],
+        ["7", "sieben", "18", "achtzehn"],
+        ["8", "acht", "19", "neunzehn"],
+        ["9", "neun", "20", "zwanzig"],
+        ["10", "zehn", "", ""],
+      ],
+    },
+    notes: [
+      "16 is 'sechzehn' — the 's' from 'sechs' drops before '-zehn'.",
+      "17 is 'siebzehn' — the 'en' from 'sieben' drops before '-zehn'.",
+      "In German, 'zwei' (2) is sometimes said as 'zwo' on the phone to avoid confusion with 'drei' (3).",
+      "'eins' is used when counting (eins, zwei, drei…). When saying '1 apple', use 'ein/eine' depending on gender.",
+      "German phone numbers are often read in pairs: 06 21 = 'null sechs, ein und zwanzig'.",
+    ],
+    examples: [
+      { de: "Ich bin 25 Jahre alt.", en: "I am 25 years old." },
+      { de: "Das kostet 15 Euro.", en: "That costs 15 euros." },
+      { de: "Meine Nummer ist 0176 12 34 56 7.", en: "My number is 0176 12 34 56 7." },
+      { de: "Es ist 8 Uhr.", en: "It is 8 o'clock." },
+      { de: "Ich wohne in der Mozartstraße 7.", en: "I live at 7 Mozart Street." },
+    ],
+    mistakes: [
+      "Saying 'sechszehn' instead of 'sechzehn' (drop the 's').",
+      "Saying 'siebenzehn' instead of 'siebzehn' (drop the 'en').",
+      "Confusing 'zwei' and 'drei' — on the phone, use 'zwo' for 2.",
+      "Using 'eins' when counting objects — use 'ein/eine' with nouns instead.",
+    ],
+    exercises: [
+      { prompt: "How do you say '16' in German?", answer: "sechzehn" },
+      { prompt: "How do you say '17' in German?", answer: "siebzehn" },
+      { prompt: "Count from 1 to 10 in German.", answer: "eins, zwei, drei, vier, fünf, sechs, sieben, acht, neun, zehn" },
+      { prompt: "How do you say '0' in German?", answer: "null" },
+      { prompt: "What is the German word for '20'?", answer: "zwanzig" },
+    ],
+    speakingPrompts: [
+      "Count from 0 to 20 in German without looking.",
+      "Say your age in German: 'Ich bin ___ Jahre alt.'",
+      "Say a phone number digit by digit in German.",
+    ],
+    summary:
+      "0–12 are unique words to memorise. 13–19 follow the pattern: base + zehn. Watch out for sechzehn (not sechszehn) and siebzehn (not siebenzehn). 20 = zwanzig.",
+    aiPrompt:
+      "Quiz me on German numbers 0–20. Say a number in English and ask me to say it in German, then correct me and explain any exceptions like 16 or 17.",
+  },
+];
+
 export const GRAMMAR_CHAPTERS: GrammarChapter[] = [
   {
     id: "ch01",

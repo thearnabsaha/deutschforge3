@@ -19,8 +19,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { api, baseUrl } from "../../lib/api";
 import { speakGerman, stopSpeaking } from "../../lib/tts";
-import { Volume2, X, Trash2, Inbox, Plus, Filter, Lightbulb, ChevronRight } from "lucide-react-native";
+import { Volume2, X, Trash2, Inbox, Plus, Filter, Lightbulb, ChevronRight, GraduationCap } from "lucide-react-native";
 import { useTheme } from "../../lib/theme";
+import {
+  loadProgress as loadSyllabusProgress,
+  getLearnedWords,
+  type SyllabusProgress,
+} from "../../lib/syllabusProgress";
 
 const { height: SCREEN_H } = Dimensions.get("window");
 
@@ -562,9 +567,137 @@ const AdvancedFilters = memo(function AdvancedFilters({
 
 // ---------- Main Screen ----------
 
+// ─── Course Words Tab ─────────────────────────────────────────────────────────
+
+function CourseWordsTab({ t }: { t: any }) {
+  const [syllabusProgress, setSyllabusProgress] = useState<SyllabusProgress | null>(null);
+
+  useEffect(() => {
+    loadSyllabusProgress().then(setSyllabusProgress);
+  }, []);
+
+  if (!syllabusProgress) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color={t.primary} />
+      </View>
+    );
+  }
+
+  const groups = getLearnedWords(syllabusProgress);
+
+  if (groups.length === 0) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
+        <GraduationCap size={56} color={t.textMuted} strokeWidth={1.5} />
+        <Text style={{ color: t.text, fontSize: 18, fontWeight: "900", marginTop: 16 }}>
+          No course words yet
+        </Text>
+        <Text style={{ color: t.textMuted, fontSize: 14, textAlign: "center", marginTop: 8 }}>
+          Complete units in the A1 course to unlock vocabulary here.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {groups.map((group) => (
+        <View key={group.unitId} style={{ marginBottom: 20 }}>
+          <Text style={{ color: t.textMuted, fontSize: 11, fontWeight: "800", letterSpacing: 1.2, marginBottom: 10 }}>
+            {group.unitTitle.toUpperCase()} ({group.words.length})
+          </Text>
+          {group.words.map((word) => (
+            <View
+              key={word.id}
+              style={{
+                backgroundColor: t.surface,
+                borderRadius: 14,
+                borderWidth: 1.5,
+                borderColor: t.border,
+                padding: 14,
+                marginBottom: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: t.text, fontSize: 16, fontWeight: "800" }}>
+                  {word.article ? `${word.article} ` : ""}{word.german}
+                  {word.plural ? ` · ${word.plural}` : ""}
+                </Text>
+                <Text style={{ color: t.textMuted, fontSize: 13, fontWeight: "500", marginTop: 2 }}>
+                  {word.english}
+                </Text>
+                <Text style={{ color: t.textMuted, fontSize: 11, fontStyle: "italic", marginTop: 4 }}>
+                  {word.example_de}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => speakGerman(word.german)}
+                style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: t.surfaceAlt, alignItems: "center", justifyContent: "center" }}
+              >
+                <Volume2 size={16} color={t.textMuted} strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+// ─── Tab switcher ─────────────────────────────────────────────────────────────
+
+function WordsTabBar({
+  active,
+  onSelect,
+  t,
+}: {
+  active: "vocab" | "course";
+  onSelect: (tab: "vocab" | "course") => void;
+  t: any;
+}) {
+  return (
+    <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.surface }}>
+      {[
+        { id: "vocab" as const, label: "Word List" },
+        { id: "course" as const, label: "Course Words" },
+      ].map(({ id, label }) => {
+        const isActive = active === id;
+        return (
+          <TouchableOpacity
+            key={id}
+            onPress={() => onSelect(id)}
+            style={{
+              flex: 1,
+              paddingVertical: 13,
+              alignItems: "center",
+              borderBottomWidth: 3,
+              borderBottomColor: isActive ? t.primary : "transparent",
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: "800", color: isActive ? t.primary : t.textMuted }}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
+
 export default function WordsScreen() {
   const { theme: t } = useTheme();
   const queryClient = useQueryClient();
+  const [activeWordTab, setActiveWordTab] = useState<"vocab" | "course">("vocab");
   const [selectedPos, setSelectedPos] = useState("all");
   const [selectedGender, setSelectedGender] = useState("all");
   const [selectedCefr, setSelectedCefr] = useState("all");
@@ -684,6 +817,14 @@ export default function WordsScreen() {
 
   return (
     <SafeAreaView style={[screenStyles.safe, { backgroundColor: t.background }]} edges={["top", "left", "right"]}>
+      {/* ─── Tab switcher ─── */}
+      <WordsTabBar active={activeWordTab} onSelect={setActiveWordTab} t={t} />
+
+      {/* ─── Course Words Tab ─── */}
+      {activeWordTab === "course" && <CourseWordsTab t={t} />}
+
+      {/* ─── Vocab Book Tab ─── */}
+      {activeWordTab === "vocab" && (<>
       {/* ─── Fixed header + filters ─── */}
       <View style={[screenStyles.stickyTop, { backgroundColor: t.background }]}>
         {/* Header */}
@@ -806,6 +947,7 @@ export default function WordsScreen() {
       {flashcardWord && (
         <WordFlashCardModal word={flashcardWord} onClose={handleCloseFlashcard} />
       )}
+      </>)}
     </SafeAreaView>
   );
 }

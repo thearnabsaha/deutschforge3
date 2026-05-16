@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { Storage } from "./storage";
 
-export type AppMode = "words" | "grammar" | "exam";
+export type AppMode = "learn" | "words" | "grammar" | "exam";
 
 export interface ModeConfig {
   key: AppMode;
@@ -20,6 +20,14 @@ export interface ModeConfig {
 }
 
 export const MODE_CONFIGS: Record<AppMode, ModeConfig> = {
+  learn: {
+    key: "learn",
+    label: "Learn",
+    tagline: "Your guided German path",
+    color: "#1CB0F6",
+    darkColor: "#0E8EC2",
+    available: true,
+  },
   words: {
     key: "words",
     label: "Words",
@@ -55,13 +63,13 @@ interface AppModeContextValue {
 }
 
 const AppModeContext = createContext<AppModeContextValue>({
-  mode: "words",
-  modeConfig: MODE_CONFIGS.words,
+  mode: "learn",
+  modeConfig: MODE_CONFIGS.learn,
   setMode: () => {},
 });
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<AppMode>("words");
+  const [mode, setModeState] = useState<AppMode>("learn");
 
   useEffect(() => {
     Storage.getItem(STORAGE_KEY).then((val) => {

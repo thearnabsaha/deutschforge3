@@ -17,9 +17,7 @@ import {
   Activity,
   BarChart2,
   BookOpen,
-
   ChevronRight,
-
   Flame,
   LayoutDashboard,
   List,
@@ -28,26 +26,43 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
-
   Zap,
   CheckCircle2,
   Circle,
+  Award,
+  Layers,
+  Star,
 } from "lucide-react-native";
 import { useTheme } from "../lib/theme";
-import { GRAMMAR_CHAPTERS, A2_GRAMMAR_CHAPTERS, B1_GRAMMAR_CHAPTERS, type GrammarChapter } from "../lib/grammarData";
+import { A0_GRAMMAR_CHAPTERS, GRAMMAR_CHAPTERS, A2_GRAMMAR_CHAPTERS, B1_GRAMMAR_CHAPTERS, type GrammarChapter } from "../lib/grammarData";
 import { ModeBadge } from "../lib/ModeSwitcher";
+
 import {
   computeStats,
   loadGrammarProgress,
+  loadPracticeProgress,
   resetGrammarProgress,
   type GrammarProgress,
+  type PracticeProgress,
+  type LevelResult,
 } from "../lib/grammarProgress";
+import { PRACTICE_DATA } from "../lib/grammarPracticeData";
 
 const GRAMMAR_COLOR = "#A855F7";
 const SCREEN_W = Dimensions.get("window").width;
+const ALL_CHAPTERS = [...A0_GRAMMAR_CHAPTERS, ...GRAMMAR_CHAPTERS, ...A2_GRAMMAR_CHAPTERS, ...B1_GRAMMAR_CHAPTERS];
 
 // ─── Level definitions ────────────────────────────────────────────────────────
 const LEVELS = [
+  {
+    id: "a0",
+    label: "A0",
+    title: "Grundlagen",
+    desc: "3 chapters · Sounds, Alphabet, Numbers",
+    available: true,
+    chapters: A0_GRAMMAR_CHAPTERS,
+    color: "#F59E0B",
+  },
   {
     id: "a1",
     label: "A1",
@@ -55,6 +70,7 @@ const LEVELS = [
     desc: "22 chapters · Pronouns to Perfekt",
     available: true,
     chapters: GRAMMAR_CHAPTERS,
+    color: "#A855F7",
   },
   {
     id: "a2",
@@ -63,6 +79,7 @@ const LEVELS = [
     desc: "19 chapters · Prepositions to Passive Voice",
     available: true,
     chapters: A2_GRAMMAR_CHAPTERS,
+    color: "#1CB0F6",
   },
   {
     id: "b1",
@@ -71,6 +88,7 @@ const LEVELS = [
     desc: "20 chapters · Präteritum to Advanced Passiv",
     available: true,
     chapters: B1_GRAMMAR_CHAPTERS,
+    color: "#22C55E",
   },
 ];
 
@@ -84,13 +102,7 @@ const TAB_META: { id: TabId; label: string; Icon: any }[] = [
 
 // ─── Radial ring ──────────────────────────────────────────────────────────────
 function RadialRing({
-  pct,
-  size = 110,
-  stroke = 10,
-  color = GRAMMAR_COLOR,
-  label,
-  sublabel,
-  t,
+  pct, size = 110, stroke = 10, color = GRAMMAR_COLOR, label, sublabel, t,
 }: {
   pct: number; size?: number; stroke?: number; color?: string;
   label: string; sublabel: string; t: any;
@@ -100,7 +112,6 @@ function RadialRing({
   const r = size / 2;
   const rightDeg = Math.min(deg, 180);
   const leftDeg = Math.max(deg - 180, 0);
-
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       <View style={{ position: "absolute", width: size, height: size, borderRadius: r, borderWidth: stroke, borderColor: color + "25" }} />
@@ -148,35 +159,38 @@ function AnimatedProgressBar({ pct, color, t }: { pct: number; color: string; t:
   );
 }
 
-// ─── Per-chapter accuracy bar chart ──────────────────────────────────────────
+// ─── Per-chapter accuracy bar chart (ALL chapters with data) ──────────────────
 function AccuracyBarChart({ progress, t }: { progress: GrammarProgress; t: any }) {
   const stats = computeStats(progress);
-  const chapters = GRAMMAR_CHAPTERS.filter((c) => (progress.chapters[c.id]?.exerciseAttempts ?? 0) > 0);
+  const chapters = ALL_CHAPTERS.filter((c) => (progress.chapters[c.id]?.exerciseAttempts ?? 0) > 0);
   if (chapters.length === 0) return null;
-  const barW = Math.max(Math.floor((SCREEN_W - 64) / chapters.length) - 3, 6);
+  const barW = Math.max(Math.floor((SCREEN_W - 64) / Math.min(chapters.length, 22)) - 3, 6);
 
   return (
     <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
       <View style={gc.cardHeader}>
         <BarChart2 size={16} color={GRAMMAR_COLOR} strokeWidth={2.5} />
         <Text style={[gc.cardTitle, { color: t.text }]}>Per-Chapter Accuracy</Text>
+        <Text style={[gc.cardSub, { color: t.textMuted }]}>{chapters.length} chapters</Text>
       </View>
-      <View style={gc.chartWrap}>
-        {chapters.map((ch) => {
-          const acc = stats.accuracy(ch.id) ?? 0;
-          const barColor = acc >= 80 ? "#22C55E" : acc >= 60 ? "#F59E0B" : "#EF4444";
-          const barHeight = Math.max(Math.round((acc / 100) * 120), 4);
-          return (
-            <View key={ch.id} style={[gc.barCol, { width: barW }]}>
-              <Text style={[gc.barPct, { color: barColor, fontSize: barW < 10 ? 7 : 9 }]}>{acc}</Text>
-              <View style={[gc.barTrack, { backgroundColor: t.border }]}>
-                <View style={[gc.barFill, { backgroundColor: barColor, height: barHeight }]} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={[gc.chartWrap, { height: 160 }]}>
+          {chapters.map((ch) => {
+            const acc = stats.accuracy(ch.id) ?? 0;
+            const barColor = acc >= 80 ? "#22C55E" : acc >= 60 ? "#F59E0B" : "#EF4444";
+            const barHeight = Math.max(Math.round((acc / 100) * 120), 4);
+            return (
+              <View key={ch.id} style={[gc.barCol, { width: barW + 4 }]}>
+                <Text style={[gc.barPct, { color: barColor, fontSize: 8 }]}>{acc}</Text>
+                <View style={[gc.barTrack, { backgroundColor: t.border }]}>
+                  <View style={[gc.barFill, { backgroundColor: barColor, height: barHeight }]} />
+                </View>
+                <Text style={[gc.barLabel, { color: t.textMuted, fontSize: 8 }]}>{ch.number}</Text>
               </View>
-              <Text style={[gc.barLabel, { color: t.textMuted, fontSize: barW < 10 ? 7 : 9 }]}>{ch.number}</Text>
-            </View>
-          );
-        })}
-      </View>
+            );
+          })}
+        </View>
+      </ScrollView>
       <View style={gc.legend}>
         {[["#22C55E", "≥80%"], ["#F59E0B", "60–79%"], ["#EF4444", "<60%"]].map(([c, l]) => (
           <View key={l} style={gc.legendItem}>
@@ -189,10 +203,11 @@ function AccuracyBarChart({ progress, t }: { progress: GrammarProgress; t: any }
   );
 }
 
-// ─── Visit heatmap ────────────────────────────────────────────────────────────
+// ─── Visit heatmap (ALL chapters) ────────────────────────────────────────────
 function VisitHeatmap({ progress, t }: { progress: GrammarProgress; t: any }) {
-  const maxVisits = Math.max(1, ...GRAMMAR_CHAPTERS.map((c) => progress.chapters[c.id]?.visitCount ?? 0));
-  const cellSize = Math.floor((SCREEN_W - 64 - 11 * 6) / 11);
+  const maxVisits = Math.max(1, ...ALL_CHAPTERS.map((c) => progress.chapters[c.id]?.visitCount ?? 0));
+  const cols = 10;
+  const cellSize = Math.floor((SCREEN_W - 64 - (cols - 1) * 6) / cols);
 
   return (
     <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
@@ -201,21 +216,27 @@ function VisitHeatmap({ progress, t }: { progress: GrammarProgress; t: any }) {
         <Text style={[gc.cardTitle, { color: t.text }]}>Chapter Activity</Text>
         <Text style={[gc.cardSub, { color: t.textMuted }]}>opens per chapter</Text>
       </View>
-      <View style={gc.heatmapGrid}>
-        {GRAMMAR_CHAPTERS.map((ch) => {
-          const visits = progress.chapters[ch.id]?.visitCount ?? 0;
-          const done = progress.chapters[ch.id]?.completedAt != null;
-          const intensity = visits === 0 ? 0 : Math.max(0.15, visits / maxVisits);
-          const bg = done ? "#22C55E" : visits === 0 ? t.border + "80" : `rgba(168,85,247,${intensity})`;
-          return (
-            <View key={ch.id} style={[gc.heatCell, { width: cellSize, height: cellSize, backgroundColor: bg, borderRadius: Math.max(4, cellSize * 0.2) }]}>
-              <Text style={[gc.heatNum, { color: visits === 0 && !done ? t.textMuted : "#fff", fontSize: cellSize > 28 ? 9 : 7 }]}>
-                {ch.number}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
+      {/* Level labels */}
+      {LEVELS.map((lvl) => (
+        <View key={lvl.id} style={{ marginBottom: 8 }}>
+          <Text style={[{ fontSize: 10, fontWeight: "800", color: lvl.color, marginBottom: 4, letterSpacing: 0.6 }]}>{lvl.label}</Text>
+          <View style={gc.heatmapGrid}>
+            {lvl.chapters.map((ch) => {
+              const visits = progress.chapters[ch.id]?.visitCount ?? 0;
+              const done = progress.chapters[ch.id]?.completedAt != null;
+              const intensity = visits === 0 ? 0 : Math.max(0.15, visits / maxVisits);
+              const bg = done ? "#22C55E" : visits === 0 ? t.border + "80" : `rgba(168,85,247,${intensity})`;
+              return (
+                <View key={ch.id} style={[gc.heatCell, { width: cellSize, height: cellSize, backgroundColor: bg, borderRadius: Math.max(4, cellSize * 0.2) }]}>
+                  <Text style={[gc.heatNum, { color: visits === 0 && !done ? t.textMuted : "#fff", fontSize: cellSize > 28 ? 9 : 7 }]}>
+                    {ch.number}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      ))}
       <View style={gc.heatLegend}>
         <Text style={[gc.legendTxt, { color: t.textMuted }]}>Less</Text>
         {[0.1, 0.3, 0.5, 0.7, 1].map((v, i) => (
@@ -228,10 +249,10 @@ function VisitHeatmap({ progress, t }: { progress: GrammarProgress; t: any }) {
   );
 }
 
-// ─── Score distribution ───────────────────────────────────────────────────────
+// ─── Score distribution (ALL chapters) ───────────────────────────────────────
 function AccuracyDistribution({ progress, t }: { progress: GrammarProgress; t: any }) {
   const stats = computeStats(progress);
-  const withScores = GRAMMAR_CHAPTERS.filter((c) => (progress.chapters[c.id]?.exerciseAttempts ?? 0) > 0);
+  const withScores = ALL_CHAPTERS.filter((c) => (progress.chapters[c.id]?.exerciseAttempts ?? 0) > 0);
   if (withScores.length === 0) return null;
 
   const high = withScores.filter((c) => (stats.accuracy(c.id) ?? 0) >= 80).length;
@@ -271,9 +292,9 @@ function AccuracyDistribution({ progress, t }: { progress: GrammarProgress; t: a
   );
 }
 
-// ─── Recent activity timeline ─────────────────────────────────────────────────
+// ─── Recent activity timeline (ALL chapters) ──────────────────────────────────
 function ProgressTimeline({ progress, t }: { progress: GrammarProgress; t: any }) {
-  const visited = GRAMMAR_CHAPTERS
+  const visited = ALL_CHAPTERS
     .filter((c) => progress.chapters[c.id]?.lastVisited)
     .sort((a, b) => (progress.chapters[b.id]?.lastVisited ?? 0) - (progress.chapters[a.id]?.lastVisited ?? 0))
     .slice(0, 6);
@@ -326,7 +347,7 @@ function ProgressTimeline({ progress, t }: { progress: GrammarProgress; t: any }
   );
 }
 
-// ─── Grammar activity heatmap ─────────────────────────────────────────────────
+// ─── Grammar activity graph ───────────────────────────────────────────────────
 function GrammarActivityGraph({ data, t }: { data: { date: string; count: number }[]; t: any }) {
   const scrollRef = useRef<ScrollView>(null);
   const weeks: { date: string; count: number }[][] = [];
@@ -341,8 +362,6 @@ function GrammarActivityGraph({ data, t }: { data: { date: string; count: number
     if (intensity < 0.75) return "#A855F7";
     return "#C084FC";
   };
-
-  // Month labels
   const monthLabels: { week: number; label: string }[] = [];
   let lastMonth = -1;
   weeks.forEach((week, wi) => {
@@ -354,7 +373,6 @@ function GrammarActivityGraph({ data, t }: { data: { date: string; count: number
       }
     }
   });
-
   const CELL = 11; const GAP = 3;
   return (
     <ScrollView
@@ -364,7 +382,6 @@ function GrammarActivityGraph({ data, t }: { data: { date: string; count: number
       onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
     >
       <View>
-        {/* Month labels */}
         <View style={{ flexDirection: "row", marginBottom: 3 }}>
           {weeks.map((_, wi) => {
             const ml = monthLabels.find((m) => m.week === wi);
@@ -375,7 +392,6 @@ function GrammarActivityGraph({ data, t }: { data: { date: string; count: number
             );
           })}
         </View>
-        {/* Grid */}
         <View style={{ flexDirection: "row", gap: GAP }}>
           {weeks.map((week, wi) => (
             <View key={wi} style={{ flexDirection: "column", gap: GAP }}>
@@ -390,13 +406,372 @@ function GrammarActivityGraph({ data, t }: { data: { date: string; count: number
   );
 }
 
+// ─── PRACTICE: Level pass overview (rings per CEFR) ──────────────────────────
+function PracticeLevelOverview({ practiceProgress, t }: { practiceProgress: PracticeProgress; t: any }) {
+  const hasAny = Object.keys(practiceProgress.chapters).length > 0;
+  if (!hasAny) return null;
+
+  return (
+    <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+      <View style={gc.cardHeader}>
+        <Award size={16} color="#F59E0B" strokeWidth={2.5} />
+        <Text style={[gc.cardTitle, { color: t.text }]}>Practice Levels Passed</Text>
+      </View>
+      <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between" }}>
+        {LEVELS.map((lvl) => {
+          const chapterIds = lvl.chapters.map(c => c.id);
+          const totalLevels = chapterIds.length * 10;
+          const passedLevels = chapterIds.reduce((sum, cid) => {
+            const results = practiceProgress.chapters[cid];
+            if (!results) return sum;
+            return sum + results.filter(r => r.passed).length;
+          }, 0);
+          const pct = totalLevels > 0 ? Math.round((passedLevels / totalLevels) * 100) : 0;
+          return (
+            <View key={lvl.id} style={[gc.ringCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+              <RadialRing
+                pct={pct}
+                size={90}
+                stroke={8}
+                color={lvl.color}
+                label={`${pct}%`}
+                sublabel={`${passedLevels}/${totalLevels}\nlevels`}
+                t={t}
+              />
+              <Text style={[gc.ringLabel, { color: lvl.color, fontSize: 11 }]}>{lvl.label}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ─── PRACTICE: Best score heatmap (chapters × 10 levels) ─────────────────────
+function PracticeScoreHeatmap({ practiceProgress, t }: { practiceProgress: PracticeProgress; t: any }) {
+  const chaptersWithData = ALL_CHAPTERS.filter(c => practiceProgress.chapters[c.id]);
+  if (chaptersWithData.length === 0) return null;
+
+  const scoreColor = (score: number, attempted: boolean) => {
+    if (!attempted) return t.border + "60";
+    if (score >= 9) return "#22C55E";
+    if (score >= 7) return "#4ADE80";
+    if (score >= 5) return "#F59E0B";
+    if (score >= 3) return "#FB923C";
+    return "#EF4444";
+  };
+
+  const CELL = 18;
+
+  return (
+    <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+      <View style={gc.cardHeader}>
+        <Layers size={16} color="#1CB0F6" strokeWidth={2.5} />
+        <Text style={[gc.cardTitle, { color: t.text }]}>Practice Score Heatmap</Text>
+        <Text style={[gc.cardSub, { color: t.textMuted }]}>10 levels per chapter</Text>
+      </View>
+      {/* Level numbers header */}
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+        <View style={{ width: 36 }} />
+        {Array.from({ length: 10 }, (_, i) => (
+          <View key={i} style={{ width: CELL + 2, alignItems: "center" }}>
+            <Text style={{ fontSize: 9, color: t.textMuted, fontWeight: "700" }}>{i + 1}</Text>
+          </View>
+        ))}
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 340 }}>
+        {chaptersWithData.map((ch) => {
+          const results = practiceProgress.chapters[ch.id] ?? [];
+          return (
+            <View key={ch.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 3 }}>
+              <Text style={{ width: 36, fontSize: 9, fontWeight: "700", color: t.textMuted }}>{ch.number}</Text>
+              {Array.from({ length: 10 }, (_, li) => {
+                const r = results[li];
+                const attempted = r && r.attempts > 0;
+                const score = r?.bestScore ?? 0;
+                return (
+                  <View
+                    key={li}
+                    style={{
+                      width: CELL,
+                      height: CELL,
+                      borderRadius: 3,
+                      marginRight: 2,
+                      backgroundColor: scoreColor(score, !!attempted),
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {attempted && (
+                      <Text style={{ fontSize: 7, fontWeight: "900", color: "#fff" }}>{score}</Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          );
+        })}
+      </ScrollView>
+      <View style={[gc.legend, { marginTop: 8, flexWrap: "wrap", rowGap: 4 }]}>
+        {[
+          ["#22C55E", "9-10"],
+          ["#4ADE80", "7-8 ✓"],
+          ["#F59E0B", "5-6"],
+          ["#FB923C", "3-4"],
+          ["#EF4444", "0-2"],
+        ].map(([c, l]) => (
+          <View key={l} style={gc.legendItem}>
+            <View style={[gc.legendDot, { backgroundColor: c }]} />
+            <Text style={[gc.legendTxt, { color: t.textMuted }]}>{l}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ─── PRACTICE: Chapter completion bars (levels passed per chapter) ─────────────
+function PracticeChapterBars({ practiceProgress, t }: { practiceProgress: PracticeProgress; t: any }) {
+  const chaptersWithData = ALL_CHAPTERS.filter(c => practiceProgress.chapters[c.id]);
+  if (chaptersWithData.length === 0) return null;
+
+  const maxBarW = SCREEN_W - 64 - 50 - 40; // subtract label + number
+
+  return (
+    <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+      <View style={gc.cardHeader}>
+        <Star size={16} color="#F59E0B" strokeWidth={2.5} />
+        <Text style={[gc.cardTitle, { color: t.text }]}>Levels Passed per Chapter</Text>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 320 }}>
+        {chaptersWithData.map((ch) => {
+          const results = practiceProgress.chapters[ch.id] ?? [];
+          const passed = results.filter(r => r.passed).length;
+          const pct = (passed / 10) * 100;
+          const barColor = pct === 100 ? "#22C55E" : pct >= 70 ? "#A855F7" : pct >= 40 ? "#1CB0F6" : "#F59E0B";
+          return (
+            <View key={ch.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 8, gap: 8 }}>
+              <Text style={{ width: 28, fontSize: 10, fontWeight: "800", color: t.textMuted, textAlign: "right" }}>{ch.number}</Text>
+              <View style={{ flex: 1, height: 10, backgroundColor: t.border, borderRadius: 5, overflow: "hidden" }}>
+                <View style={{ width: `${pct}%`, height: 10, backgroundColor: barColor, borderRadius: 5 }} />
+              </View>
+              <Text style={{ width: 32, fontSize: 10, fontWeight: "900", color: barColor, textAlign: "right" }}>{passed}/10</Text>
+            </View>
+          );
+        })}
+      </ScrollView>
+      <View style={gc.legend}>
+        {[["#22C55E", "All 10"], ["#A855F7", "7-9"], ["#1CB0F6", "4-6"], ["#F59E0B", "1-3"]].map(([c, l]) => (
+          <View key={l} style={gc.legendItem}>
+            <View style={[gc.legendDot, { backgroundColor: c }]} />
+            <Text style={[gc.legendTxt, { color: t.textMuted }]}>{l}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ─── PRACTICE: Average best score per CEFR level (stacked segment bars) ────────
+function PracticeCEFRScoreBar({ practiceProgress, t }: { practiceProgress: PracticeProgress; t: any }) {
+  const hasAny = Object.keys(practiceProgress.chapters).length > 0;
+  if (!hasAny) return null;
+
+  return (
+    <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+      <View style={gc.cardHeader}>
+        <BarChart2 size={16} color="#1CB0F6" strokeWidth={2.5} />
+        <Text style={[gc.cardTitle, { color: t.text }]}>Avg Best Score by Level</Text>
+        <Text style={[gc.cardSub, { color: t.textMuted }]}>out of 10</Text>
+      </View>
+      {LEVELS.map((lvl) => {
+        const scores: number[] = [];
+        lvl.chapters.forEach(ch => {
+          const results = practiceProgress.chapters[ch.id];
+          if (results) results.forEach(r => { if (r.attempts > 0) scores.push(r.bestScore); });
+        });
+        if (scores.length === 0) {
+          return (
+            <View key={lvl.id} style={{ marginBottom: 12 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                <Text style={{ fontSize: 11, fontWeight: "800", color: lvl.color }}>{lvl.label}</Text>
+                <Text style={{ fontSize: 11, fontWeight: "600", color: t.textMuted }}>No data</Text>
+              </View>
+              <View style={{ height: 10, backgroundColor: t.border, borderRadius: 5 }} />
+            </View>
+          );
+        }
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const pct = (avg / 10) * 100;
+        return (
+          <View key={lvl.id} style={{ marginBottom: 12 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+              <Text style={{ fontSize: 11, fontWeight: "800", color: lvl.color }}>{lvl.label}</Text>
+              <Text style={{ fontSize: 12, fontWeight: "900", color: lvl.color }}>{avg.toFixed(1)}</Text>
+            </View>
+            <View style={{ height: 10, backgroundColor: t.border, borderRadius: 5, overflow: "hidden" }}>
+              <View style={{ width: `${pct}%`, height: 10, backgroundColor: lvl.color, borderRadius: 5 }} />
+            </View>
+            <Text style={{ fontSize: 10, color: t.textMuted, marginTop: 2 }}>{scores.length} levels attempted</Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+// ─── PRACTICE: Attempts distribution ─────────────────────────────────────────
+function PracticeAttemptsChart({ practiceProgress, t }: { practiceProgress: PracticeProgress; t: any }) {
+  // How many levels took N attempts to pass
+  const buckets = [1, 2, 3, 4, 5]; // "5+" bucket
+  const counts = [0, 0, 0, 0, 0];
+  let total = 0;
+
+  ALL_CHAPTERS.forEach(ch => {
+    const results = practiceProgress.chapters[ch.id];
+    if (!results) return;
+    results.forEach(r => {
+      if (!r.passed || r.attempts === 0) return;
+      total++;
+      const idx = Math.min(r.attempts - 1, 4);
+      counts[idx]++;
+    });
+  });
+
+  if (total === 0) return null;
+
+  const maxCount = Math.max(...counts, 1);
+  const labels = ["1st try", "2nd", "3rd", "4th", "5+"];
+  const colors = ["#22C55E", "#4ADE80", "#F59E0B", "#FB923C", "#EF4444"];
+
+  return (
+    <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+      <View style={gc.cardHeader}>
+        <TrendingUp size={16} color="#22C55E" strokeWidth={2.5} />
+        <Text style={[gc.cardTitle, { color: t.text }]}>Attempts to Pass</Text>
+        <Text style={[gc.cardSub, { color: t.textMuted }]}>{total} levels passed</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "flex-end", height: 100, gap: 8 }}>
+        {counts.map((count, i) => {
+          const barH = maxCount > 0 ? Math.max((count / maxCount) * 80, count > 0 ? 6 : 0) : 0;
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+          return (
+            <View key={i} style={{ flex: 1, alignItems: "center", gap: 3 }}>
+              <Text style={{ fontSize: 10, fontWeight: "900", color: colors[i] }}>{pct > 0 ? `${pct}%` : ""}</Text>
+              <View style={{ width: "80%", height: barH, backgroundColor: colors[i], borderRadius: 4 }} />
+              <Text style={{ fontSize: 9, fontWeight: "700", color: t.textMuted }}>{labels[i]}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ─── PRACTICE: Top performers & most struggled ───────────────────────────────
+function PracticeLeaderboard({ practiceProgress, t }: { practiceProgress: PracticeProgress; t: any }) {
+  type ChapterScore = { ch: GrammarChapter; avgBest: number; passedCount: number };
+  const scored: ChapterScore[] = ALL_CHAPTERS.map(ch => {
+    const results = practiceProgress.chapters[ch.id] ?? [];
+    const attempted = results.filter(r => r.attempts > 0);
+    if (attempted.length === 0) return null;
+    const avgBest = attempted.reduce((s, r) => s + r.bestScore, 0) / attempted.length;
+    const passedCount = results.filter(r => r.passed).length;
+    return { ch, avgBest, passedCount };
+  }).filter(Boolean) as ChapterScore[];
+
+  if (scored.length === 0) return null;
+
+  const top = [...scored].sort((a, b) => b.avgBest - a.avgBest).slice(0, 4);
+  const bottom = [...scored].sort((a, b) => a.avgBest - b.avgBest).slice(0, 4);
+
+  return (
+    <View style={{ gap: 12 }}>
+      {/* Top */}
+      <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <View style={gc.cardHeader}>
+          <TrendingUp size={16} color="#22C55E" strokeWidth={2.5} />
+          <Text style={[gc.cardTitle, { color: t.text }]}>Practice Strengths</Text>
+        </View>
+        {top.map(({ ch, avgBest, passedCount }) => (
+          <View key={ch.id} style={gc.strengthRow}>
+            <Text style={[gc.strTitle, { color: t.text }]} numberOfLines={1}>{ch.number}. {ch.title}</Text>
+            <View style={{ flex: 1, marginHorizontal: 8 }}>
+              <View style={[gc.miniBar, { backgroundColor: t.border }]}>
+                <View style={[gc.miniBarFill, { backgroundColor: "#22C55E", width: `${(avgBest / 10) * 100}%` as any }]} />
+              </View>
+            </View>
+            <Text style={[gc.strAcc, { color: "#22C55E" }]}>{avgBest.toFixed(1)}</Text>
+          </View>
+        ))}
+      </View>
+      {/* Bottom */}
+      <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+        <View style={gc.cardHeader}>
+          <TrendingDown size={16} color="#EF4444" strokeWidth={2.5} />
+          <Text style={[gc.cardTitle, { color: t.text }]}>Needs More Practice</Text>
+        </View>
+        {bottom.map(({ ch, avgBest, passedCount }) => (
+          <View key={ch.id} style={gc.strengthRow}>
+            <Text style={[gc.strTitle, { color: t.text }]} numberOfLines={1}>{ch.number}. {ch.title}</Text>
+            <View style={{ flex: 1, marginHorizontal: 8 }}>
+              <View style={[gc.miniBar, { backgroundColor: t.border }]}>
+                <View style={[gc.miniBarFill, { backgroundColor: "#EF4444", width: `${(avgBest / 10) * 100}%` as any }]} />
+              </View>
+            </View>
+            <Text style={[gc.strAcc, { color: "#EF4444" }]}>{avgBest.toFixed(1)}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ─── PRACTICE: Mini stat tiles ────────────────────────────────────────────────
+function PracticeMiniStats({ practiceProgress, t }: { practiceProgress: PracticeProgress; t: any }) {
+  let totalLevelsPassed = 0, totalAttempts = 0, totalLevelsAttempted = 0, perfectLevels = 0;
+  ALL_CHAPTERS.forEach(ch => {
+    const results = practiceProgress.chapters[ch.id] ?? [];
+    results.forEach(r => {
+      if (r.attempts > 0) {
+        totalAttempts += r.attempts;
+        totalLevelsAttempted++;
+        if (r.passed) totalLevelsPassed++;
+        if (r.bestScore === 10) perfectLevels++;
+      }
+    });
+  });
+
+  if (totalLevelsAttempted === 0) return null;
+
+  const tiles = [
+    { label: "Levels Passed", val: totalLevelsPassed, color: "#22C55E" },
+    { label: "Attempts", val: totalAttempts, color: GRAMMAR_COLOR },
+    { label: "Attempted", val: totalLevelsAttempted, color: "#1CB0F6" },
+    { label: "Perfect 10s", val: perfectLevels, color: "#F59E0B" },
+  ];
+
+  return (
+    <View style={{ flexDirection: "row", gap: 8 }}>
+      {tiles.map(({ label, val, color }) => (
+        <View key={label} style={[gc.miniStat, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Text style={[gc.miniVal, { color }]}>{val}</Text>
+          <Text style={[gc.miniLbl, { color: t.textMuted }]}>{label}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 // ─── Dashboard tab ────────────────────────────────────────────────────────────
 function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
   const [progress, setProgress] = useState<GrammarProgress | null>(null);
+  const [practiceProgress, setPracticeProgress] = useState<PracticeProgress>({ chapters: {} });
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     loadGrammarProgress().then(setProgress);
+    loadPracticeProgress().then(setPracticeProgress);
   }, [refreshKey]);
 
   const handleReset = () => {
@@ -427,7 +802,7 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
   }
 
   const stats = computeStats(progress);
-  const hasAnyData = stats.visited > 0;
+  const hasAnyData = stats.visited > 0 || Object.keys(practiceProgress.chapters).length > 0;
 
   if (!hasAnyData) {
     return (
@@ -438,7 +813,7 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
           </View>
           <Text style={[dash.emptyTitle, { color: t.text }]}>No data yet</Text>
           <Text style={[dash.emptyDesc, { color: t.textMuted }]}>
-            Open chapters to track visits. Mark chapters done to track completion.
+            Open chapters to track visits. Use the Practice tab to attempt MCQ levels.
           </Text>
         </View>
       </ScrollView>
@@ -450,6 +825,18 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
   const accColor = stats.overallAccuracy === null ? GRAMMAR_COLOR
     : stats.overallAccuracy >= 80 ? "#22C55E"
     : stats.overallAccuracy >= 60 ? "#F59E0B" : "#EF4444";
+
+  // Total practice levels passed for the "Practice" ring
+  let totalPassed = 0, totalAvailable = 0;
+  ALL_CHAPTERS.forEach(ch => {
+    const hasData = PRACTICE_DATA.find(p => p.chapterId === ch.id);
+    if (hasData) {
+      totalAvailable += 10;
+      const results = practiceProgress.chapters[ch.id] ?? [];
+      totalPassed += results.filter(r => r.passed).length;
+    }
+  });
+  const practicePct = totalAvailable > 0 ? Math.round((totalPassed / totalAvailable) * 100) : 0;
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 96 }}>
@@ -464,19 +851,23 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
         <GrammarActivityGraph data={stats.weeklyActivity ?? []} t={t} />
       </View>
 
-      {/* ── Rings: Completion & Accuracy ── */}
-      <View style={{ flexDirection: "row", gap: 12 }}>
+      {/* ── 3 Rings: Completion, Accuracy, Practice ── */}
+      <View style={{ flexDirection: "row", gap: 10 }}>
         <View style={[gc.ringCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-          <RadialRing pct={completePct} color="#22C55E" label={`${completePct}%`} sublabel={`${stats.completed}/${stats.total}\ncompleted`} t={t} />
-          <Text style={[gc.ringLabel, { color: t.text }]}>Completed</Text>
+          <RadialRing pct={completePct} size={90} stroke={8} color="#22C55E" label={`${completePct}%`} sublabel={`${stats.completed}/${stats.total}\ndone`} t={t} />
+          <Text style={[gc.ringLabel, { color: t.text, fontSize: 11 }]}>Completed</Text>
         </View>
         <View style={[gc.ringCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-          <RadialRing pct={stats.overallAccuracy ?? 0} color={accColor} label={stats.overallAccuracy !== null ? `${stats.overallAccuracy}%` : "—"} sublabel={stats.overallAccuracy !== null ? "accuracy" : "no exercises"} t={t} />
-          <Text style={[gc.ringLabel, { color: t.text }]}>Accuracy</Text>
+          <RadialRing pct={stats.overallAccuracy ?? 0} size={90} stroke={8} color={accColor} label={stats.overallAccuracy !== null ? `${stats.overallAccuracy}%` : "—"} sublabel={stats.overallAccuracy !== null ? "accuracy" : "no data"} t={t} />
+          <Text style={[gc.ringLabel, { color: t.text, fontSize: 11 }]}>Accuracy</Text>
+        </View>
+        <View style={[gc.ringCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <RadialRing pct={practicePct} size={90} stroke={8} color={GRAMMAR_COLOR} label={`${practicePct}%`} sublabel={`${totalPassed}/${totalAvailable}\nlevels`} t={t} />
+          <Text style={[gc.ringLabel, { color: t.text, fontSize: 11 }]}>Practice</Text>
         </View>
       </View>
 
-      {/* ── 4 mini stats ── */}
+      {/* ── 4 mini learn stats ── */}
       <View style={{ flexDirection: "row", gap: 8 }}>
         {[
           { Icon: CheckCircle2, val: stats.completed, lbl: "Completed", color: "#22C55E" },
@@ -492,31 +883,30 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
         ))}
       </View>
 
-      {/* ── Completion progress bar (done chapters) ── */}
-      <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
-        <View style={gc.cardHeader}>
-          <View style={[gc.levelBadge, { backgroundColor: GRAMMAR_COLOR + "20" }]}>
-            <Text style={[gc.levelBadgeTxt, { color: GRAMMAR_COLOR }]}>A1–B1</Text>
-          </View>
-          <Text style={[gc.cardTitle, { color: t.text }]}>Completion</Text>
-          <Text style={[gc.pctBadge, { color: "#22C55E" }]}>{completePct}%</Text>
-        </View>
-        <AnimatedProgressBar pct={completePct} color="#22C55E" t={t} />
-        <Text style={[gc.barSub, { color: t.textMuted }]}>
-          {stats.completed} marked done · {stats.visited} visited · {stats.total} total
-        </Text>
-      </View>
+      {/* ── Practice mini stats ── */}
+      <PracticeMiniStats practiceProgress={practiceProgress} t={t} />
 
-      {/* ── Visited progress bar ── */}
-      <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
-        <View style={gc.cardHeader}>
-          <BookOpen size={14} color={GRAMMAR_COLOR} strokeWidth={2.5} />
-          <Text style={[gc.cardTitle, { color: t.text }]}>Chapters Opened</Text>
-          <Text style={[gc.pctBadge, { color: GRAMMAR_COLOR }]}>{visitPct}%</Text>
+      {/* ── Section label ── */}
+      {stats.visited > 0 && (
+        <Text style={[dash.sectionLabel, { color: t.textMuted }]}>— LEARN PROGRESS —</Text>
+      )}
+
+      {/* ── Completion progress bar ── */}
+      {stats.visited > 0 && (
+        <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <View style={gc.cardHeader}>
+            <View style={[gc.levelBadge, { backgroundColor: GRAMMAR_COLOR + "20" }]}>
+              <Text style={[gc.levelBadgeTxt, { color: GRAMMAR_COLOR }]}>A1–B1</Text>
+            </View>
+            <Text style={[gc.cardTitle, { color: t.text }]}>Completion</Text>
+            <Text style={[gc.pctBadge, { color: "#22C55E" }]}>{completePct}%</Text>
+          </View>
+          <AnimatedProgressBar pct={completePct} color="#22C55E" t={t} />
+          <Text style={[gc.barSub, { color: t.textMuted }]}>
+            {stats.completed} marked done · {stats.visited} visited · {stats.total} total
+          </Text>
         </View>
-        <AnimatedProgressBar pct={visitPct} color={GRAMMAR_COLOR} t={t} />
-        <Text style={[gc.barSub, { color: t.textMuted }]}>{stats.visited} of {stats.total} chapters opened</Text>
-      </View>
+      )}
 
       {/* ── Score distribution ── */}
       <AccuracyDistribution progress={progress} t={t} />
@@ -530,7 +920,7 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
       {/* ── Timeline ── */}
       <ProgressTimeline progress={progress} t={t} />
 
-      {/* ── Strengths ── */}
+      {/* ── Strengths / Weaknesses ── */}
       {stats.strengths.length > 0 && (
         <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={gc.cardHeader}>
@@ -553,8 +943,6 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
           })}
         </View>
       )}
-
-      {/* ── Weaknesses ── */}
       {stats.weaknesses.length > 0 && (
         <View style={[gc.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={gc.cardHeader}>
@@ -577,6 +965,27 @@ function DashboardTab({ t, onReset }: { t: any; onReset: () => void }) {
           })}
         </View>
       )}
+
+      {/* ── PRACTICE SECTION ── */}
+      <Text style={[dash.sectionLabel, { color: t.textMuted }]}>— PRACTICE PROGRESS —</Text>
+
+      {/* Rings per CEFR */}
+      <PracticeLevelOverview practiceProgress={practiceProgress} t={t} />
+
+      {/* Avg score bars per CEFR */}
+      <PracticeCEFRScoreBar practiceProgress={practiceProgress} t={t} />
+
+      {/* Chapter level bars */}
+      <PracticeChapterBars practiceProgress={practiceProgress} t={t} />
+
+      {/* Score heatmap */}
+      <PracticeScoreHeatmap practiceProgress={practiceProgress} t={t} />
+
+      {/* Attempts to pass bar chart */}
+      <PracticeAttemptsChart practiceProgress={practiceProgress} t={t} />
+
+      {/* Practice strengths/needs work */}
+      <PracticeLeaderboard practiceProgress={practiceProgress} t={t} />
 
       {/* ── Reset button ── */}
       <TouchableOpacity
@@ -620,8 +1029,8 @@ function LevelSection({ level, t, router, progress }: { level: typeof LEVELS[num
   return (
     <View>
       <View style={s.sectionHeader}>
-        <View style={[s.levelPill, { backgroundColor: GRAMMAR_COLOR + "20" }]}>
-          <Text style={[s.levelPillTxt, { color: GRAMMAR_COLOR }]}>{level.label}</Text>
+        <View style={[s.levelPill, { backgroundColor: level.color + "20" }]}>
+          <Text style={[s.levelPillTxt, { color: level.color }]}>{level.label}</Text>
         </View>
         <Text style={[s.sectionTitle, { color: t.text }]}>{level.title}</Text>
         <View style={[s.activeBadge, { backgroundColor: "#22C55E18", borderColor: "#22C55E44" }]}>
@@ -639,12 +1048,55 @@ function LevelSection({ level, t, router, progress }: { level: typeof LEVELS[num
   );
 }
 
+// ─── Course Topics row ────────────────────────────────────────────────────────
+
+function CourseTopicRow({
+  topic,
+  unlocked,
+  completed,
+  t,
+  router,
+}: {
+  topic: any;
+  unlocked: boolean;
+  completed: boolean;
+  t: any;
+  router: any;
+}) {
+  return (
+    <TouchableOpacity
+      style={[row.card, { backgroundColor: t.surface, borderColor: completed ? "#22C55E44" : unlocked ? "#A560E844" : t.border, borderWidth: completed ? 2 : 1.5, opacity: unlocked ? 1 : 0.55 }]}
+      onPress={() => unlocked && router.push(`/grammar-chapter?id=${topic.id}&isCourse=1`)}
+      activeOpacity={unlocked ? 0.78 : 1}
+    >
+      <View style={[row.numBadge, { backgroundColor: completed ? "#22C55E20" : unlocked ? "#A560E820" : t.surfaceAlt }]}>
+        {completed ? (
+          <CheckCircle2 size={18} color="#22C55E" strokeWidth={2.5} />
+        ) : !unlocked ? (
+          <Lock size={16} color={t.textMuted} strokeWidth={2.5} />
+        ) : (
+          <Zap size={18} color="#A560E8" strokeWidth={2.5} />
+        )}
+      </View>
+      <View style={row.body}>
+        <Text style={[row.title, { color: unlocked ? t.text : t.textMuted }]}>{topic.title}</Text>
+        <Text style={[row.sub, { color: t.textMuted }]}>
+          {unlocked ? topic.subtitle : `Unlock at unit ${topic.unlockedAtUnit.replace("u", "")}`}
+        </Text>
+      </View>
+      {unlocked && <ChevronRight size={18} color={t.border} strokeWidth={2} />}
+    </TouchableOpacity>
+  );
+}
+
 function ChaptersTab({ t, router, progress }: { t: any; router: any; progress: GrammarProgress | null }) {
   const availableLevels = LEVELS.filter((l) => l.available);
   const lockedLevels = LEVELS.filter((l) => !l.available);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
+
+      {/* ── Grammar chapters ── */}
       {availableLevels.map((lvl) => (
         <LevelSection key={lvl.id} level={lvl} t={t} router={router} progress={progress} />
       ))}
@@ -670,7 +1122,6 @@ function LockedLevelCard({ level, theme: t }: { level: { id: string; label: stri
           <Text style={[lc.levelTitle, { color: t.text }]}>{level.title}</Text>
           <Text style={[lc.levelDesc, { color: t.textMuted }]}>{level.desc}</Text>
         </View>
-
       </View>
       <View style={[lc.divider, { backgroundColor: t.border }]} />
       <View style={lc.previewList}>
@@ -692,7 +1143,6 @@ export default function GrammarScreen() {
   const [activeTab, setActiveTab] = useState<TabId>("chapters");
   const [progress, setProgress] = useState<GrammarProgress | null>(null);
 
-  // Load progress once so chapters tab can show completion state
   useEffect(() => {
     loadGrammarProgress().then(setProgress);
   }, []);
@@ -702,7 +1152,6 @@ export default function GrammarScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: t.background }}>
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
-        {/* Top bar */}
         <View style={s.topBar}>
           <View style={[s.iconWrap, { backgroundColor: GRAMMAR_COLOR + "18" }]}>
             <BookOpen size={18} color={GRAMMAR_COLOR} strokeWidth={2.5} />
@@ -711,12 +1160,10 @@ export default function GrammarScreen() {
           <ModeBadge />
         </View>
 
-        {/* Tab content */}
         {activeTab === "dashboard" && <DashboardTab t={t} onReset={refreshProgress} />}
         {activeTab === "chapters" && <ChaptersTab t={t} router={router} progress={progress} />}
       </SafeAreaView>
 
-      {/* Full-width bottom tab bar */}
       <SafeAreaView edges={["bottom"]} style={{ backgroundColor: t.tabBar }}>
         <View style={[btab.bar, { backgroundColor: t.tabBar, borderTopColor: t.tabBarBorder }]}>
           {TAB_META.map(({ id, label, Icon }) => {
@@ -742,72 +1189,28 @@ export default function GrammarScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const btab = StyleSheet.create({
-  bar: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    height: 56,
-    paddingBottom: 8,
-    paddingTop: 4,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 2,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
+  bar: { flexDirection: "row", borderTopWidth: 1, height: 56, paddingBottom: 8, paddingTop: 4 },
+  tab: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2 },
+  label: { fontSize: 11, fontWeight: "700" },
 });
 
 const s = StyleSheet.create({
   safe: { flex: 1 },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
+  topBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12 },
   iconWrap: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   topTitle: { fontSize: 17, fontWeight: "800", flex: 1 },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 4,
-  },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, marginTop: 20, marginBottom: 4 },
   levelPill: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   levelPillTxt: { fontSize: 12, fontWeight: "900", letterSpacing: 0.8 },
   sectionTitle: { fontSize: 16, fontWeight: "800", flex: 1 },
-  activeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderWidth: 1,
-  },
+  activeBadge: { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1 },
   activeDot: { width: 6, height: 6, borderRadius: 3 },
   activeTxt: { fontSize: 11, fontWeight: "800" },
   chapterCount: { fontSize: 12, fontWeight: "600", paddingHorizontal: 16, marginBottom: 10 },
 });
 
 const row = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    padding: 14,
-    gap: 12,
-  },
+  card: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 8, borderRadius: 14, borderWidth: 1.5, padding: 14, gap: 12 },
   numBadge: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   numTxt: { fontSize: 14, fontWeight: "900", letterSpacing: 0.5 },
   body: { flex: 1, gap: 2 },
@@ -840,11 +1243,11 @@ const gc = StyleSheet.create({
   levelBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   levelBadgeTxt: { fontSize: 11, fontWeight: "900", letterSpacing: 0.8 },
   pctBadge: { fontSize: 15, fontWeight: "900" },
-  ringCard: { flex: 1, borderRadius: 18, borderWidth: 1.5, padding: 16, alignItems: "center", gap: 10 },
+  ringCard: { flex: 1, borderRadius: 18, borderWidth: 1.5, padding: 12, alignItems: "center", gap: 8 },
   ringLabel: { fontSize: 12, fontWeight: "800" },
   miniStat: { flex: 1, borderRadius: 14, borderWidth: 1.5, padding: 10, alignItems: "center", gap: 4 },
   miniVal: { fontSize: 18, fontWeight: "900" },
-  miniLbl: { fontSize: 9, fontWeight: "700" },
+  miniLbl: { fontSize: 9, fontWeight: "700", textAlign: "center" },
   progTrack: { height: 10, borderRadius: 5, overflow: "hidden" },
   progFill: { height: 10, borderRadius: 5 },
   barSub: { fontSize: 11, fontWeight: "600" },
@@ -855,7 +1258,7 @@ const gc = StyleSheet.create({
   distDot: { width: 8, height: 8, borderRadius: 4 },
   distCount: { fontSize: 15, fontWeight: "900" },
   distLabel: { fontSize: 11, fontWeight: "600" },
-  chartWrap: { flexDirection: "row", alignItems: "flex-end", gap: 3, paddingTop: 4, height: 160 },
+  chartWrap: { flexDirection: "row", alignItems: "flex-end", gap: 3, paddingTop: 4 },
   barCol: { alignItems: "center", gap: 3 },
   barPct: { fontWeight: "800" },
   barTrack: { flex: 1, width: "100%", borderRadius: 3, overflow: "hidden", justifyContent: "flex-end" },
@@ -884,16 +1287,7 @@ const gc = StyleSheet.create({
   tlTime: { fontSize: 11, fontWeight: "600" },
   tlMeta: { flexDirection: "row", gap: 10, marginTop: 3 },
   tlMini: { fontSize: 11, fontWeight: "600" },
-  resetBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    paddingVertical: 14,
-    marginTop: 4,
-  },
+  resetBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, borderWidth: 1.5, paddingVertical: 14, marginTop: 4 },
   resetTxt: { fontSize: 14, fontWeight: "700", color: "#EF4444" },
 });
 
@@ -905,6 +1299,5 @@ const dash = StyleSheet.create({
   emptyIcon: { width: 60, height: 60, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   emptyTitle: { fontSize: 18, fontWeight: "800" },
   emptyDesc: { fontSize: 14, textAlign: "center", lineHeight: 20 },
+  sectionLabel: { fontSize: 10, fontWeight: "800", letterSpacing: 1.5, textAlign: "center", marginVertical: 4 },
 });
-
-

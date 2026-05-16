@@ -1,6 +1,10 @@
 import { createAuthClient } from "better-auth/react";
+import Constants from "expo-constants";
 
-const baseURL = "https://manufacturer-column-consideration-assessing.trycloudflare.com";
+const baseURL =
+  (Constants.expoConfig?.extra?.apiUrl as string) ??
+  process.env.EXPO_PUBLIC_API_URL ??
+  "http://localhost:4200";
 
 export const authClient = createAuthClient({
   baseURL,
