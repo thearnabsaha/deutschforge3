@@ -316,13 +316,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   backBtn: { width: 40, justifyContent: "center" },
-  headerTitle: { fontSize: 18, fontWeight: "800" },
+  headerTitle: { fontSize: 22, fontWeight: "900" },
 
   container: { padding: 16 },
 
   sectionTitle: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "800",
     letterSpacing: 1.2,
     marginTop: 20,
     marginBottom: 10,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    borderRadius: 18,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     marginBottom: 4,

@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   topCenter: { flex: 1, alignItems: "center" },
-  topTitle: { fontSize: 17, fontWeight: "800" },
+  topTitle: { fontSize: 22, fontWeight: "900" },
   topSub: { fontSize: 12, fontWeight: "600", marginTop: 1 },
 
   list: { paddingBottom: 48 },
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
 
   card: {
     marginHorizontal: 16, marginBottom: 8,
-    borderRadius: 14, borderWidth: 1.5,
+    borderRadius: 16, borderWidth: 1.5,
     padding: 14, flexDirection: "row", alignItems: "center", gap: 12,
   },
   numBadge: {

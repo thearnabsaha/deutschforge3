@@ -15,12 +15,12 @@ import {
   ScrollView,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { api, baseUrl } from "../../lib/api";
 import { speakGerman, stopSpeaking } from "../../lib/tts";
-import { Volume2, X, Trash2, Inbox, Plus, Filter, Lightbulb, ChevronRight, GraduationCap } from "lucide-react-native";
+import { Volume2, X, Trash2, Inbox, Plus, Filter, Lightbulb, ChevronRight, GraduationCap, Library } from "lucide-react-native";
 import { useTheme } from "../../lib/theme";
+import { useShellTopBar } from "../../lib/AppShell";
 import {
   loadProgress as loadSyllabusProgress,
   getLearnedWords,
@@ -815,8 +815,27 @@ export default function WordsScreen() {
 
   const filtersActive = showAdvanced || advancedActiveCount > 0;
 
+  useShellTopBar({
+    left: (
+      <>
+        <Library size={22} color={t.primary} strokeWidth={2.5} />
+        <Text style={[screenStyles.title, { color: t.text }]}>Words</Text>
+      </>
+    ),
+    right: (
+      <TouchableOpacity
+        style={[screenStyles.addFab, { backgroundColor: t.primary }]}
+        onPress={() => setShowAdd(true)}
+      >
+        <Plus size={16} color="#fff" strokeWidth={2.5} />
+        <Text style={screenStyles.addFabText}>Add</Text>
+      </TouchableOpacity>
+    ),
+    accent: "#58CC02",
+  });
+
   return (
-    <SafeAreaView style={[screenStyles.safe, { backgroundColor: t.background }]} edges={["top", "left", "right"]}>
+    <View style={[screenStyles.safe, { backgroundColor: t.background }]}>
       {/* ─── Tab switcher ─── */}
       <WordsTabBar active={activeWordTab} onSelect={setActiveWordTab} t={t} />
 
@@ -849,12 +868,7 @@ export default function WordsScreen() {
                 </Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={[screenStyles.addFab, { backgroundColor: t.primary }]} onPress={() => setShowAdd(true)}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                <Plus size={16} color="#fff" strokeWidth={2.5} />
-                <Text style={screenStyles.addFabText}>Add</Text>
-              </View>
-            </TouchableOpacity>
+
           </View>
         </View>
 
@@ -948,7 +962,7 @@ export default function WordsScreen() {
         <WordFlashCardModal word={flashcardWord} onClose={handleCloseFlashcard} />
       )}
       </>)}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -996,7 +1010,7 @@ const fcStyles = StyleSheet.create({
 
 const listStyles = StyleSheet.create({
   wordCard: {
-    borderRadius: 18, padding: 14, marginBottom: 10,
+    borderRadius: 16, padding: 14, marginBottom: 10,
     flexDirection: "row", shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06, shadowRadius: 6, elevation: 2, minHeight: ITEM_HEIGHT - 10,
   },
@@ -1025,7 +1039,7 @@ const filterStyles = StyleSheet.create({
   panelTitle: { fontSize: 13, fontWeight: "800" },
   resetBtn: { backgroundColor: "#FF4B4B22", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: "#FF4B4B" },
   resetBtnText: { fontSize: 11, fontWeight: "700", color: "#FF4B4B" },
-  sectionLabel: { fontSize: 10, fontWeight: "800", marginTop: 8, marginBottom: 2, marginLeft: 4, letterSpacing: 1 },
+  sectionLabel: { fontSize: 11, fontWeight: "800", marginTop: 8, marginBottom: 2, marginLeft: 4, letterSpacing: 1.2 },
 });
 
 const modalStyles = StyleSheet.create({
@@ -1053,7 +1067,7 @@ const screenStyles = StyleSheet.create({
   safe: { flex: 1 },
   stickyTop: { paddingBottom: 4, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 3, zIndex: 10 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  title: { fontSize: 26, fontWeight: "800" },
+  title: { fontSize: 22, fontWeight: "900" },
   addFab: { borderRadius: 20, paddingHorizontal: 18, paddingVertical: 10, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4 },
   addFabText: { color: "#fff", fontWeight: "800", fontSize: 15 },
   filtersBtn: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1.5 },

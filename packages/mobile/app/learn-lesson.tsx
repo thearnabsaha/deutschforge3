@@ -641,7 +641,7 @@ export default function LearnLessonScreen() {
       <View style={[scr.topBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity onPress={() => { stopSpeaking(); router.back(); }}
           style={scr.backBtn} activeOpacity={0.7}>
-          <ChevronLeft size={22} color={t.textMuted} strokeWidth={2.5} />
+          <ChevronLeft size={22} color={t.primary} strokeWidth={2.5} />
         </TouchableOpacity>
         <ProgressBar current={progressCurrent} total={totalItems} color={color} />
         {/* Phase pill */}

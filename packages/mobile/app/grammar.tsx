@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+
 import { useRouter } from "expo-router";
 
 import {
@@ -35,7 +35,7 @@ import {
 } from "lucide-react-native";
 import { useTheme } from "../lib/theme";
 import { A0_GRAMMAR_CHAPTERS, GRAMMAR_CHAPTERS, A2_GRAMMAR_CHAPTERS, B1_GRAMMAR_CHAPTERS, type GrammarChapter } from "../lib/grammarData";
-import { ModeBadge } from "../lib/ModeSwitcher";
+import { useShellTopBar } from "../lib/AppShell";
 
 import {
   computeStats,
@@ -1149,56 +1149,66 @@ export default function GrammarScreen() {
 
   const refreshProgress = () => loadGrammarProgress().then(setProgress);
 
+  useShellTopBar({
+    left: (
+      <>
+        <View style={[s.iconWrap, { backgroundColor: GRAMMAR_COLOR + "18" }]}>
+          <BookOpen size={18} color={GRAMMAR_COLOR} strokeWidth={2.5} />
+        </View>
+        <Text style={[s.topTitle, { color: t.text }]}>Grammar</Text>
+      </>
+    ),
+    accent: GRAMMAR_COLOR,
+  });
+
   return (
     <View style={{ flex: 1, backgroundColor: t.background }}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
-        <View style={s.topBar}>
-          <View style={[s.iconWrap, { backgroundColor: GRAMMAR_COLOR + "18" }]}>
-            <BookOpen size={18} color={GRAMMAR_COLOR} strokeWidth={2.5} />
-          </View>
-          <Text style={[s.topTitle, { color: t.text }]}>Grammar</Text>
-          <ModeBadge />
-        </View>
+      {/* Grammar-internal sub-tabs */}
+      <View style={[s.subTabBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        {TAB_META.map(({ id, label, Icon }) => {
+          const isActive = activeTab === id;
+          const color = isActive ? GRAMMAR_COLOR : t.textMuted;
+          return (
+            <TouchableOpacity
+              key={id}
+              style={[s.subTab, isActive && { borderBottomColor: GRAMMAR_COLOR }]}
+              onPress={() => { setActiveTab(id); if (id === "chapters") refreshProgress(); }}
+              activeOpacity={0.7}
+            >
+              <Icon size={18} color={color} strokeWidth={isActive ? 2.5 : 2} />
+              <Text style={[s.subTabLabel, { color }]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-        {activeTab === "dashboard" && <DashboardTab t={t} onReset={refreshProgress} />}
-        {activeTab === "chapters" && <ChaptersTab t={t} router={router} progress={progress} />}
-      </SafeAreaView>
-
-      <SafeAreaView edges={["bottom"]} style={{ backgroundColor: t.tabBar }}>
-        <View style={[btab.bar, { backgroundColor: t.tabBar, borderTopColor: t.tabBarBorder }]}>
-          {TAB_META.map(({ id, label, Icon }) => {
-            const isActive = activeTab === id;
-            const color = isActive ? GRAMMAR_COLOR : t.textMuted;
-            return (
-              <TouchableOpacity
-                key={id}
-                style={btab.tab}
-                onPress={() => { setActiveTab(id); if (id === "chapters") refreshProgress(); }}
-                activeOpacity={0.7}
-              >
-                <Icon size={22} color={color} strokeWidth={isActive ? 2.5 : 2} />
-                <Text style={[btab.label, { color }]}>{label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </SafeAreaView>
+      {activeTab === "dashboard" && <DashboardTab t={t} onReset={refreshProgress} />}
+      {activeTab === "chapters" && <ChaptersTab t={t} router={router} progress={progress} />}
     </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const btab = StyleSheet.create({
-  bar: { flexDirection: "row", borderTopWidth: 1, height: 56, paddingBottom: 8, paddingTop: 4 },
-  tab: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2 },
-  label: { fontSize: 11, fontWeight: "700" },
-});
-
 const s = StyleSheet.create({
   safe: { flex: 1 },
   topBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12 },
   iconWrap: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  topTitle: { fontSize: 17, fontWeight: "800", flex: 1 },
+  subTabBar: {
+    flexDirection: "row",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  subTab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+  },
+  subTabLabel: { fontSize: 13, fontWeight: "700" },
+  topTitle: { fontSize: 22, fontWeight: "900", flex: 1 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, marginTop: 20, marginBottom: 4 },
   levelPill: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   levelPillTxt: { fontSize: 12, fontWeight: "900", letterSpacing: 0.8 },
@@ -1299,5 +1309,5 @@ const dash = StyleSheet.create({
   emptyIcon: { width: 60, height: 60, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   emptyTitle: { fontSize: 18, fontWeight: "800" },
   emptyDesc: { fontSize: 14, textAlign: "center", lineHeight: 20 },
-  sectionLabel: { fontSize: 10, fontWeight: "800", letterSpacing: 1.5, textAlign: "center", marginVertical: 4 },
+  sectionLabel: { fontSize: 11, fontWeight: "800", letterSpacing: 1.2, textAlign: "center", marginVertical: 4 },
 });

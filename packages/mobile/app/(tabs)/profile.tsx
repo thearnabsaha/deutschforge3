@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useShellTopBar } from "../../lib/AppShell";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import {
@@ -23,6 +23,7 @@ import {
   Trash2,
   RefreshCw,
   LogOut,
+  User,
 } from "lucide-react-native";
 import { api, baseUrl } from "../../lib/api";
 import { authClient } from "../../lib/auth";
@@ -249,8 +250,23 @@ export default function ProfileScreen() {
     { icon: <CheckCircle size={20} color={t.accent} strokeWidth={2} />, num: data?.totalReviews ?? 0, label: "Total Reviews" },
   ];
 
+  useShellTopBar({
+    left: (
+      <>
+        <User size={22} color={t.primary} strokeWidth={2.5} />
+        <Text style={[styles.headerTitle, { color: t.text }]}>Profile</Text>
+      </>
+    ),
+    right: (
+      <TouchableOpacity onPress={handleSettings} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Settings size={22} color={t.textSecondary} strokeWidth={2} />
+      </TouchableOpacity>
+    ),
+    accent: t.primary,
+  });
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: t.background }]} edges={["top", "left", "right"]}>
+    <View style={[styles.safe, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
@@ -369,12 +385,13 @@ export default function ProfileScreen() {
           <Text style={[styles.logoutBtnText, { color: t.danger }]}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  headerTitle: { fontSize: 20, fontWeight: "800" },
   container: { padding: 16, paddingBottom: 40 },
 
   profileHeader: { alignItems: "center", marginBottom: 20, paddingTop: 8 },
@@ -407,11 +424,11 @@ const styles = StyleSheet.create({
   navBtnText: { flex: 1, fontSize: 15, fontWeight: "600" },
 
   card: {
-    borderRadius: 18, padding: 16, marginBottom: 20,
+    borderRadius: 16, padding: 16, marginBottom: 20,
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06,
     shadowRadius: 6, elevation: 2,
   },
-  cardTitle: { fontSize: 16, fontWeight: "700" },
+  cardTitle: { fontSize: 15, fontWeight: "800" },
   xpHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
   xpTotal: { fontSize: 16, fontWeight: "800" },
   xpBarBg: { height: 10, borderRadius: 5, overflow: "hidden", marginBottom: 6 },
@@ -419,7 +436,7 @@ const styles = StyleSheet.create({
   xpSub: { fontSize: 12 },
 
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  sectionTitle: { fontSize: 17, fontWeight: "700", marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: "800", marginBottom: 12 },
   badgeCount: { fontSize: 13, fontWeight: "600" },
 
   statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 24 },
@@ -433,7 +450,7 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11, fontWeight: "600", textAlign: "center" },
 
   badgeCategorySection: { marginBottom: 16 },
-  badgeCategoryLabel: { fontSize: 11, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8, marginLeft: 2 },
+  badgeCategoryLabel: { fontSize: 11, fontWeight: "800", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, marginLeft: 2 },
   badgeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   badgeItem: {
     width: "30%", borderRadius: 14, padding: 10, alignItems: "center",

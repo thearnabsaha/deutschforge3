@@ -459,7 +459,7 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
   },
   backBtn: { width: 40, alignItems: "flex-start", justifyContent: "center" },
-  navTitle: { flex: 1, textAlign: "center", fontSize: 18, fontWeight: "800" },
+  navTitle: { flex: 1, textAlign: "center", fontSize: 22, fontWeight: "900" },
 
   scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
 
@@ -484,7 +484,7 @@ const s = StyleSheet.create({
   sectionTitle: { fontSize: 16, fontWeight: "800", marginBottom: 8, marginTop: 4 },
 
   card: {
-    borderRadius: 18, padding: 16, marginBottom: 16,
+    borderRadius: 16, padding: 16, marginBottom: 16,
     shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
   },

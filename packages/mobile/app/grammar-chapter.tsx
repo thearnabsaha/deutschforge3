@@ -728,7 +728,7 @@ export default function GrammarChapterScreen() {
       )}
 
       {/* Top bar */}
-      <View style={s.topBar}>
+      <View style={[s.topBar, { borderBottomColor: t.border }]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <ChevronLeft size={24} color={t.text} strokeWidth={2.5} />
         </TouchableOpacity>
@@ -938,10 +938,10 @@ const s = StyleSheet.create({
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
   scroll: { paddingHorizontal: 16, paddingBottom: 56 },
 
-  topBar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12 },
+  topBar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   topCenter: { flex: 1, alignItems: "center" },
   topChapter: { fontSize: 12, fontWeight: "800", letterSpacing: 0.5 },
-  topTitle: { fontSize: 16, fontWeight: "800" },
+  topTitle: { fontSize: 18, fontWeight: "900" },
   doneBadge: {
     flexDirection: "row",
     alignItems: "center",

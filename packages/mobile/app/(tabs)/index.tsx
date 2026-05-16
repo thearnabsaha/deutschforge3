@@ -20,7 +20,7 @@ import {
   BarChart2, Target, Brain, Star, AlertTriangle, Activity,
   Award, ChevronRight, Layers,
 } from "lucide-react-native";
-import { ModeBadge } from "../../lib/ModeSwitcher";
+import { useShellTopBar } from "../../lib/AppShell";
 import { DeutschForgeMascot } from "../../components/DeutschForgeMascot";
 
 const SCREEN_W = Dimensions.get("window").width;
@@ -501,8 +501,26 @@ export default function HomeScreen() {
   const data = basicStats.data;
   const dash = dashboard.data && 'cardStates' in (dashboard.data as any) ? dashboard.data : undefined;
 
+  useShellTopBar({
+    left: (
+      <>
+        <DeutschForgeMascot mood={(data?.streak ?? 0) > 0 ? "happy" : "neutral"} size={34} />
+        <View>
+          <Text style={[styles.greeting, { color: t.textMuted }]}>Guten Tag!</Text>
+          <Text style={[styles.userName, { color: t.text }]}>{session?.user?.name ?? "Learner"}</Text>
+        </View>
+      </>
+    ),
+    right: (
+      <View style={[styles.levelChip, { backgroundColor: t.accent }]}>
+        <Text style={[styles.levelChipText, { color: t.dark ? "#fff" : "#1F1F1F" }]}>Lv {data?.level ?? 1}</Text>
+      </View>
+    ),
+    accent: t.primary,
+  });
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: t.background }]} edges={["top", "left", "right"]}>
+    <View style={[styles.safe, { backgroundColor: t.background }]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.container}
@@ -511,22 +529,6 @@ export default function HomeScreen() {
           <RefreshControl refreshing={isLoading} onRefresh={handleRefresh} tintColor={t.primary} />
         }
       >
-        {/* ── Header ── */}
-        <View style={styles.header}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <DeutschForgeMascot mood={(data?.streak ?? 0) > 0 ? "happy" : "neutral"} size={48} />
-            <View>
-              <Text style={[styles.greeting, { color: t.textMuted }]}>Guten Tag! 👋</Text>
-              <Text style={[styles.userName, { color: t.text }]}>{session?.user?.name ?? "Learner"}</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <View style={[styles.levelChip, { backgroundColor: t.accent }]}>
-              <Text style={[styles.levelChipText, { color: t.dark ? "#fff" : "#1F1F1F" }]}>Lv {data?.level ?? 1}</Text>
-            </View>
-            <ModeBadge />
-          </View>
-        </View>
 
         {/* ── Streak + XP ── */}
         <View style={styles.row}>
@@ -713,7 +715,7 @@ export default function HomeScreen() {
 
         <View style={{ height: 16 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

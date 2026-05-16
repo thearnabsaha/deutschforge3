@@ -20,8 +20,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  StatusBar,
-  SafeAreaView,
+
   TextInput,
   Image,
 } from "react-native";
@@ -33,6 +32,7 @@ import {
 } from "../../lib/examAudioPlayer";
 import type { AmbientTrack } from "../../lib/examAudioPlayer";
 import { useTheme } from "../../lib/theme";
+import { useShellTopBar } from "../../lib/AppShell";
 import {
   LEVEL_META,
   SECTION_META,
@@ -246,22 +246,33 @@ export default function ExamNavigator() {
     else if (nav.screen === "exam-detail") push({ screen: "list", level: nav.level, section: nav.section });
   };
 
+  // Register shell top bar
+  useShellTopBar({
+    left: (
+      <>
+        <GraduationCap size={22} color="#F59E0B" strokeWidth={2.5} />
+        <Text style={{ fontSize: 18, fontWeight: "900", color: t.text }}>Exams</Text>
+      </>
+    ),
+    right: (
+      <TouchableOpacity
+        style={[s.analyticsBtn, { backgroundColor: t.surfaceAlt, borderColor: t.border }]}
+        onPress={() => push({ screen: "analytics" })}
+        activeOpacity={0.7}
+      >
+        <BarChart2 size={15} color={t.textSecondary} strokeWidth={2} />
+        <Text style={[s.analyticsBtnTxt, { color: t.textSecondary }]}>Analytics</Text>
+      </TouchableOpacity>
+    ),
+    accent: "#F59E0B",
+  });
+
   // ── Levels Screen ──────────────────────────────────────────────
   if (nav.screen === "levels") {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
-        <StatusBar barStyle={t.dark ? "light-content" : "dark-content"} backgroundColor={t.background} />
+      <View style={{ flex: 1, backgroundColor: t.background }}>
         <ScrollView contentContainerStyle={s.page} showsVerticalScrollIndicator={false}>
-          <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 4 }}>
-            <TouchableOpacity
-              style={[s.analyticsBtn, { backgroundColor: t.surfaceAlt, borderColor: t.border }]}
-              onPress={() => push({ screen: "analytics" })}
-              activeOpacity={0.7}
-            >
-              <BarChart2 size={15} color={t.textSecondary} strokeWidth={2} />
-              <Text style={[s.analyticsBtnTxt, { color: t.textSecondary }]}>Analytics</Text>
-            </TouchableOpacity>
-          </View>
+          <View style={{ height: 4 }} />
           <View style={s.centerHeader}>
             <View style={s.heroIcon}>
               <GraduationCap size={40} color="#fff" strokeWidth={1.5} />
@@ -309,7 +320,7 @@ export default function ExamNavigator() {
           })}
           <View style={{ height: 32 }} />
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -323,8 +334,7 @@ export default function ExamNavigator() {
       sprechen: { A1: "15 min", A2: "15 min", B1: "15 min" },
     };
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
-        <StatusBar barStyle={t.dark ? "light-content" : "dark-content"} backgroundColor={t.background} />
+      <View style={{ flex: 1, backgroundColor: t.background }}>
         <ScrollView contentContainerStyle={s.page} showsVerticalScrollIndicator={false}>
           <TouchableOpacity style={s.backRow} onPress={back}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -382,7 +392,7 @@ export default function ExamNavigator() {
           })}
           <View style={{ height: 32 }} />
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -394,8 +404,7 @@ export default function ExamNavigator() {
     const attempted = exams.filter((e) => getAttemptCount(examResults, e.id) > 0).length;
     const passed = exams.filter((e) => hasEverPassed(examResults, e.id)).length;
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
-        <StatusBar barStyle={t.dark ? "light-content" : "dark-content"} backgroundColor={t.background} />
+      <View style={{ flex: 1, backgroundColor: t.background }}>
         <ScrollView contentContainerStyle={s.page} showsVerticalScrollIndicator={false}>
           <TouchableOpacity style={s.backRow} onPress={back}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -480,7 +489,7 @@ export default function ExamNavigator() {
           </View>
           <View style={{ height: 32 }} />
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -577,12 +586,12 @@ function ExamRunner({
 
   if (!exam) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: t.background, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ flex: 1, backgroundColor: t.background, alignItems: "center", justifyContent: "center" }}>
         <Text style={{ color: t.text }}>Exam not found</Text>
         <TouchableOpacity onPress={onBack} style={{ marginTop: 16 }}>
           <Text style={{ color: t.primary }}>Go Back</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -1285,8 +1294,7 @@ function ExamRunner({
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
-      <StatusBar barStyle={t.dark ? "light-content" : "dark-content"} backgroundColor={t.background} />
+    <View style={{ flex: 1, backgroundColor: t.background }}>
       {/* Top Bar */}
       <View style={[s.topBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity onPress={onBack} style={{ padding: 4 }}>
@@ -1322,7 +1330,7 @@ function ExamRunner({
         {section === "sprechen" && renderSprechen()}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

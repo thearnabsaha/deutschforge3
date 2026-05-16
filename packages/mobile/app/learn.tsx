@@ -10,15 +10,14 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  StatusBar,
+
   Animated,
   Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { GraduationCap, Flame, Star, Lock, CheckCircle2 } from "lucide-react-native";
 import { useTheme } from "../lib/theme";
-import { ModeBadge } from "../lib/ModeSwitcher";
+import { useShellTopBar } from "../lib/AppShell";
 import { SYLLABUS_UNITS, ALL_LEVELS, type SyllabusLevel, type SyllabusUnit } from "../lib/syllabusData";
 import {
   loadProgress,
@@ -261,32 +260,33 @@ export default function LearnScreen() {
 
   const overallPct = getOverallPercent(progress);
 
+  useShellTopBar({
+    left: (
+      <>
+        <GraduationCap size={24} color="#1CB0F6" strokeWidth={2.5} />
+        <Text style={[scr.headerTitle, { color: t.text }]}>A1 Course</Text>
+      </>
+    ),
+    right: (
+      <>
+        <View style={[scr.badge, { backgroundColor: "#FFD70022" }]}>
+          <Star size={14} color="#FFD700" strokeWidth={2.5} fill="#FFD700" />
+          <Text style={[scr.badgeText, { color: "#CC9900" }]}>{progress.xp}</Text>
+        </View>
+        <View style={[scr.badge, { backgroundColor: "#FF6B2B22" }]}>
+          <Flame size={14} color="#FF6B2B" strokeWidth={2.5} fill="#FF6B2B" />
+          <Text style={[scr.badgeText, { color: "#CC5500" }]}>{progress.streak}</Text>
+        </View>
+      </>
+    ),
+    accent: "#1CB0F6",
+  });
+
   // Track zigzag index separately (only increments for level items)
   let zigzagIdx = 0;
 
   return (
-    <SafeAreaView style={[scr.safe, { backgroundColor: t.background }]}>
-      <StatusBar barStyle={"dark-content" as any} backgroundColor={t.background} />
-
-      {/* Header */}
-      <View style={[scr.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
-        <View style={scr.headerLeft}>
-          <GraduationCap size={26} color="#1CB0F6" strokeWidth={2.5} />
-          <Text style={[scr.headerTitle, { color: t.text }]}>A1 Course</Text>
-        </View>
-        <View style={scr.headerRight}>
-          <View style={[scr.badge, { backgroundColor: "#FFD70022" }]}>
-            <Star size={14} color="#FFD700" strokeWidth={2.5} fill="#FFD700" />
-            <Text style={[scr.badgeText, { color: "#CC9900" }]}>{progress.xp}</Text>
-          </View>
-          <View style={[scr.badge, { backgroundColor: "#FF6B2B22" }]}>
-            <Flame size={14} color="#FF6B2B" strokeWidth={2.5} fill="#FF6B2B" />
-            <Text style={[scr.badgeText, { color: "#CC5500" }]}>{progress.streak}</Text>
-          </View>
-          <ModeBadge />
-        </View>
-      </View>
-
+    <View style={[scr.safe, { backgroundColor: t.background }]}>
       {/* Overall progress bar */}
       <View style={[scr.progressWrap, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <View style={[scr.progressBar, { backgroundColor: t.border }]}>
@@ -355,7 +355,7 @@ export default function LearnScreen() {
 
         <View style={{ height: 80 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

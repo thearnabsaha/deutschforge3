@@ -25,6 +25,7 @@ import {
 } from "lucide-react-native";
 import { api } from "../../lib/api";
 import { useTheme } from "../../lib/theme";
+import { useShellTopBar } from "../../lib/AppShell";
 import { Storage } from "../../lib/storage";
 import { setConfidence, confidenceColor, EXAM_HISTORY_KEY } from "../../lib/confidence";
 import type { ExamHistoryEntry } from "../../lib/confidence";
@@ -308,7 +309,7 @@ const cs = StyleSheet.create({
     fontSize: 15, minHeight: 80, textAlignVertical: "top",
   },
   createBtn: {
-    borderRadius: 14, paddingVertical: 15,
+    borderRadius: 16, paddingVertical: 15,
     alignItems: "center", justifyContent: "center", marginTop: 4,
   },
   loadingRow: { flexDirection: "row", alignItems: "center", gap: 10 },
@@ -498,17 +499,17 @@ export default function StudyScreen() {
 
   if (wordsQuery.isLoading || !settingsLoaded) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: t.background }]} edges={["top"]}>
+      <View style={[styles.safe, { backgroundColor: t.background }]}>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={t.primary} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (allWords.length === 0) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: t.background }]} edges={["top"]}>
+      <View style={[styles.safe, { backgroundColor: t.background }]}>
         <View style={styles.centered}>
           <Layers size={56} color={t.primary} strokeWidth={1.5} />
           <Text style={[styles.emptyTitle, { color: t.text }]}>No words yet</Text>
@@ -529,30 +530,37 @@ export default function StudyScreen() {
           onCreated={handleCreated}
           allWords={allWords}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 
+  useShellTopBar({
+    left: (
+      <>
+        <Layers size={22} color={t.primary} strokeWidth={2.5} />
+        <Text style={[styles.title, { color: t.text }]}>Study</Text>
+      </>
+    ),
+    right: (
+      <TouchableOpacity
+        style={[styles.createBtn, { backgroundColor: t.primary }]}
+        onPress={() => setShowCreate(true)}
+      >
+        <Plus size={16} color="#fff" strokeWidth={3} />
+        <Text style={styles.createBtnTxt}>Set</Text>
+      </TouchableOpacity>
+    ),
+    accent: t.primary,
+  });
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: t.background }]} edges={["top"]}>
+    <View style={[styles.safe, { backgroundColor: t.background }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={[styles.title, { color: t.text }]}>Study</Text>
-            <Text style={[styles.subtitle, { color: t.textMuted }]}>
-              {allWords.length} words · {autoSets.length + customSets.length} sets
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[styles.createBtn, { backgroundColor: t.primary }]}
-            onPress={() => setShowCreate(true)}
-          >
-            <Plus size={16} color="#fff" strokeWidth={3} />
-            <Text style={styles.createBtnTxt}>Create Set</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Subtitle */}
+        <Text style={[styles.subtitle, { color: t.textMuted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }]}>
+          {allWords.length} words · {autoSets.length + customSets.length} sets
+        </Text>
 
         {/* My Sets */}
         {customSets.length > 0 && (
@@ -614,7 +622,7 @@ export default function StudyScreen() {
         onCreated={handleCreated}
         allWords={allWords}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -642,7 +650,7 @@ const styles = StyleSheet.create({
   },
   createBtnTxt: { color: "#fff", fontWeight: "800", fontSize: 13 },
   sectionLabel: {
-    fontSize: 11, fontWeight: "800", letterSpacing: 1.1,
+    fontSize: 11, fontWeight: "800", letterSpacing: 1.2,
     paddingHorizontal: 20, marginBottom: 8,
   },
 });

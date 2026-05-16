@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   container: { padding: 20 },
   header: { alignItems: "center", marginBottom: 24, paddingTop: 8 },
   headerEmoji: { fontSize: 56, marginBottom: 12 },
-  title: { fontSize: 26, fontWeight: "800", letterSpacing: -0.5, textAlign: "center" },
+  title: { fontSize: 22, fontWeight: "900", letterSpacing: -0.5, textAlign: "center" },
   subtitle: { fontSize: 14, textAlign: "center", marginTop: 8, lineHeight: 20, paddingHorizontal: 16 },
   infoBanner: {
     borderRadius: 14,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   },
   infoTitle: { fontSize: 14, fontWeight: "700", marginBottom: 6 },
   infoText: { fontSize: 13, lineHeight: 20 },
-  sectionLabel: { fontSize: 11, fontWeight: "700", letterSpacing: 1, marginBottom: 12 },
+  sectionLabel: { fontSize: 11, fontWeight: "800", letterSpacing: 1.2, marginBottom: 12 },
   levelCard: {
     flexDirection: "row",
     alignItems: "center",

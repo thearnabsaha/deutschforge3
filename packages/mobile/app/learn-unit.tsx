@@ -469,7 +469,7 @@ const screen = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   headerCenter: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8 },
   headerEmoji: { fontSize: 22 },
-  headerTitle: { fontSize: 20, fontWeight: "900" },
+  headerTitle: { fontSize: 22, fontWeight: "900" },
   xpBadge: {
     flexDirection: "row",
     alignItems: "center",
