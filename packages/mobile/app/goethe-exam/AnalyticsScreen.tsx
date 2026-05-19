@@ -36,11 +36,13 @@ const SECTIONS: Section[] = ["hoeren", "lesen", "schreiben", "sprechen"];
 
 interface Props {
   results: ExamResultsV2;
-  onBack: () => void;
+  onBack?: () => void;
   onViewExamDetail: (examId: string, level: Level, section: Section) => void;
+  /** Hide the internal header row (use when rendered as a tab screen) */
+  hideHeader?: boolean;
 }
 
-export default function AnalyticsScreen({ results, onBack, onViewExamDetail }: Props) {
+export default function AnalyticsScreen({ results, onBack, onViewExamDetail, hideHeader }: Props) {
   const { theme: t } = useTheme();
 
   // ── Global stats ──────────────────────────────────────────────
@@ -84,17 +86,19 @@ export default function AnalyticsScreen({ results, onBack, onViewExamDetail }: P
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
       <StatusBar barStyle={t.dark ? "light-content" : "dark-content"} backgroundColor={t.background} />
-      {/* Header */}
-      <View style={[a.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
-        <TouchableOpacity onPress={onBack} style={{ padding: 4 }}>
-          <ChevronLeft size={24} color={t.primary} strokeWidth={2.5} />
-        </TouchableOpacity>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <BarChart2 size={16} color={t.text} strokeWidth={2} />
-          <Text style={[a.headerTitle, { color: t.text }]}>Analytics</Text>
+      {/* Header — hidden when rendered as a standalone tab */}
+      {!hideHeader && (
+        <View style={[a.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <TouchableOpacity onPress={onBack} style={{ padding: 4 }}>
+            <ChevronLeft size={24} color={t.primary} strokeWidth={2.5} />
+          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <BarChart2 size={16} color={t.text} strokeWidth={2} />
+            <Text style={[a.headerTitle, { color: t.text }]}>Analytics</Text>
+          </View>
+          <View style={{ width: 32 }} />
         </View>
-        <View style={{ width: 32 }} />
-      </View>
+      )}
 
       <ScrollView contentContainerStyle={a.page} showsVerticalScrollIndicator={false}>
         {/* Overall stats bar */}

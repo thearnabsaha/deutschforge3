@@ -10,7 +10,10 @@
       "edgeToEdgeEnabled": true
     },
     "extra": {
-      "apiUrl": "https://latter-defines-supported-bunch.trycloudflare.com"
+      "apiUrl": "https://lap-msgid-condition-specifications.trycloudflare.com",
+      "eas": {
+        "projectId": "d90ed849-4ffe-4a04-905c-6855782e0b23"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.deutschforge_d4k2.runable",
@@ -21,7 +24,7 @@
       "resizeMode": "cover",
       "backgroundColor": "#0D1B2A"
     },
-    "name": "DeutschForge",
+    "name": "MoinMoin",
     "slug": "deutschforge",
     "version": "1.0.0",
     "scheme": "deutschforge",
@@ -33,7 +36,12 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
-    ]
+      "expo-router",
+      "expo-sqlite"
+    ],
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "owner": "thearnabsaha"
   }
 }

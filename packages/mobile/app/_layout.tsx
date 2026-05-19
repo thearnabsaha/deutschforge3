@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { authClient } from "../lib/auth";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, View, AppState, type AppStateStatus } from "react-native";
 import { ThemeProvider } from "../lib/theme";
 import { AppModeProvider } from "../lib/appMode";
 import { musicPlayer } from "../lib/music";
@@ -11,6 +11,16 @@ import {
   scheduleHourlyReminders,
   addNotificationResponseListener,
 } from "../lib/notifications";
+import { initLocalDb } from "../lib/localDb";
+import { runSync } from "../lib/syncEngine";
+import NetInfo from "@react-native-community/netinfo";
+
+// Init DB immediately (sync, safe to call multiple times)
+try {
+  initLocalDb();
+} catch (e) {
+  console.warn("[db] init failed", e);
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +41,15 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
   const segments = useSegments();
   const router = useRouter();
+  const lastSyncRef = useRef<number>(0);
+
+  // Trigger sync when online + session available
+  const maybeSync = (userId: string) => {
+    const now = Date.now();
+    if (now - lastSyncRef.current < 30_000) return; // throttle 30s
+    lastSyncRef.current = now;
+    runSync(userId).catch(() => {});
+  };
 
   useEffect(() => {
     const sub = addNotificationResponseListener((response) => {
@@ -51,6 +70,36 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       router.replace("/(tabs)");
     }
   }, [session, isPending, segments]);
+
+  // Sync on network reconnect
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+
+    const unsub = NetInfo.addEventListener((state) => {
+      if (state.isConnected && state.isInternetReachable !== false) {
+        maybeSync(userId);
+      }
+    });
+    return () => unsub();
+  }, [session?.user?.id]);
+
+  // Sync on app foreground
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+
+    const sub = AppState.addEventListener("change", (nextState: AppStateStatus) => {
+      if (nextState === "active") {
+        maybeSync(userId);
+      }
+    });
+
+    // Initial sync on mount
+    maybeSync(userId);
+
+    return () => sub.remove();
+  }, [session?.user?.id]);
 
   if (isPending) {
     return (

@@ -118,14 +118,6 @@ export function ModeSwitcherModal({
                 <View style={modal.cardBody}>
                   <View style={modal.cardRow}>
                     <Text style={[modal.cardLabel, { color: t.text }]}>{cfg.label}</Text>
-                    {!cfg.available && (
-                      <View style={[modal.comingTag, { backgroundColor: t.border }]}>
-                        <Clock size={9} color={t.textMuted} strokeWidth={2.5} />
-                        <Text style={[modal.comingTagTxt, { color: t.textMuted }]}>
-                          Soon
-                        </Text>
-                      </View>
-                    )}
                   </View>
                   <Text style={[modal.cardTagline, { color: t.textMuted }]}>
                     {cfg.tagline}

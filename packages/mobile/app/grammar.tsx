@@ -20,7 +20,6 @@ import {
   ChevronRight,
   Flame,
   LayoutDashboard,
-  List,
   Lock,
   RefreshCw,
   Target,
@@ -34,7 +33,7 @@ import {
   Star,
 } from "lucide-react-native";
 import { useTheme } from "../lib/theme";
-import { A0_GRAMMAR_CHAPTERS, GRAMMAR_CHAPTERS, A2_GRAMMAR_CHAPTERS, B1_GRAMMAR_CHAPTERS, type GrammarChapter } from "../lib/grammarData";
+import { GRAMMAR_CHAPTERS, A2_GRAMMAR_CHAPTERS, B1_GRAMMAR_CHAPTERS, type GrammarChapter } from "../lib/grammarData";
 import { useShellTopBar } from "../lib/AppShell";
 
 import {
@@ -50,19 +49,10 @@ import { PRACTICE_DATA } from "../lib/grammarPracticeData";
 
 const GRAMMAR_COLOR = "#A855F7";
 const SCREEN_W = Dimensions.get("window").width;
-const ALL_CHAPTERS = [...A0_GRAMMAR_CHAPTERS, ...GRAMMAR_CHAPTERS, ...A2_GRAMMAR_CHAPTERS, ...B1_GRAMMAR_CHAPTERS];
+const ALL_CHAPTERS = [...GRAMMAR_CHAPTERS, ...A2_GRAMMAR_CHAPTERS, ...B1_GRAMMAR_CHAPTERS];
 
 // ─── Level definitions ────────────────────────────────────────────────────────
 const LEVELS = [
-  {
-    id: "a0",
-    label: "A0",
-    title: "Grundlagen",
-    desc: "3 chapters · Sounds, Alphabet, Numbers",
-    available: true,
-    chapters: A0_GRAMMAR_CHAPTERS,
-    color: "#F59E0B",
-  },
   {
     id: "a1",
     label: "A1",
@@ -90,14 +80,6 @@ const LEVELS = [
     chapters: B1_GRAMMAR_CHAPTERS,
     color: "#22C55E",
   },
-];
-
-// ─── Bottom tab bar ───────────────────────────────────────────────────────────
-type TabId = "dashboard" | "chapters";
-
-const TAB_META: { id: TabId; label: string; Icon: any }[] = [
-  { id: "dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { id: "chapters", label: "Chapters", Icon: List },
 ];
 
 // ─── Radial ring ──────────────────────────────────────────────────────────────
@@ -417,7 +399,7 @@ function PracticeLevelOverview({ practiceProgress, t }: { practiceProgress: Prac
         <Award size={16} color="#F59E0B" strokeWidth={2.5} />
         <Text style={[gc.cardTitle, { color: t.text }]}>Practice Levels Passed</Text>
       </View>
-      <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between" }}>
+      <View style={{ gap: 10 }}>
         {LEVELS.map((lvl) => {
           const chapterIds = lvl.chapters.map(c => c.id);
           const totalLevels = chapterIds.length * 10;
@@ -428,17 +410,19 @@ function PracticeLevelOverview({ practiceProgress, t }: { practiceProgress: Prac
           }, 0);
           const pct = totalLevels > 0 ? Math.round((passedLevels / totalLevels) * 100) : 0;
           return (
-            <View key={lvl.id} style={[gc.ringCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-              <RadialRing
-                pct={pct}
-                size={90}
-                stroke={8}
-                color={lvl.color}
-                label={`${pct}%`}
-                sublabel={`${passedLevels}/${totalLevels}\nlevels`}
-                t={t}
-              />
-              <Text style={[gc.ringLabel, { color: lvl.color, fontSize: 11 }]}>{lvl.label}</Text>
+            <View key={lvl.id} style={{ gap: 4 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <View style={{ width: 28, height: 18, borderRadius: 5, backgroundColor: lvl.color + "22", alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ fontSize: 10, fontWeight: "800", color: lvl.color, letterSpacing: 0.4 }}>{lvl.label}</Text>
+                  </View>
+                  <Text style={{ fontSize: 12, fontWeight: "600", color: t.textSecondary }}>{lvl.title}</Text>
+                </View>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: lvl.color }}>{passedLevels}/{totalLevels}</Text>
+              </View>
+              <View style={{ height: 6, borderRadius: 4, backgroundColor: t.border, overflow: "hidden" }}>
+                <View style={{ height: 6, borderRadius: 4, backgroundColor: lvl.color, width: `${pct}%` as any, opacity: pct === 0 ? 0.3 : 1 }} />
+              </View>
             </View>
           );
         })}
@@ -1140,7 +1124,6 @@ function LockedLevelCard({ level, theme: t }: { level: { id: string; label: stri
 export default function GrammarScreen() {
   const { theme: t } = useTheme();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabId>("chapters");
   const [progress, setProgress] = useState<GrammarProgress | null>(null);
 
   useEffect(() => {
@@ -1163,27 +1146,7 @@ export default function GrammarScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.background }}>
-      {/* Grammar-internal sub-tabs */}
-      <View style={[s.subTabBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
-        {TAB_META.map(({ id, label, Icon }) => {
-          const isActive = activeTab === id;
-          const color = isActive ? GRAMMAR_COLOR : t.textMuted;
-          return (
-            <TouchableOpacity
-              key={id}
-              style={[s.subTab, isActive && { borderBottomColor: GRAMMAR_COLOR }]}
-              onPress={() => { setActiveTab(id); if (id === "chapters") refreshProgress(); }}
-              activeOpacity={0.7}
-            >
-              <Icon size={18} color={color} strokeWidth={isActive ? 2.5 : 2} />
-              <Text style={[s.subTabLabel, { color }]}>{label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {activeTab === "dashboard" && <DashboardTab t={t} onReset={refreshProgress} />}
-      {activeTab === "chapters" && <ChaptersTab t={t} router={router} progress={progress} />}
+      <ChaptersTab t={t} router={router} progress={progress} />
     </View>
   );
 }

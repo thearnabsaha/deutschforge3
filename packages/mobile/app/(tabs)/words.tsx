@@ -1,4 +1,7 @@
-import React, { useState, useCallback, memo, useRef, useEffect } from "react";
+import React, { useState, useCallback, memo, useRef, useEffect, useMemo } from "react";
+import GrammarScreen from "../grammar";
+import LearnScreen from "../learn";
+import { useAppMode } from "../../lib/appMode";
 import {
   View,
   Text,
@@ -17,6 +20,13 @@ import {
 } from "react-native";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { api, baseUrl } from "../../lib/api";
+import { authClient } from "../../lib/auth";
+import {
+  getWords,
+  addWordOffline,
+  deleteWordLocally,
+} from "../../lib/offlineStore";
+import { subscribeSyncState } from "../../lib/syncEngine";
 import { speakGerman, stopSpeaking } from "../../lib/tts";
 import { Volume2, X, Trash2, Inbox, Plus, Filter, Lightbulb, ChevronRight, GraduationCap, Library } from "lucide-react-native";
 import { useTheme } from "../../lib/theme";
@@ -694,9 +704,12 @@ function WordsTabBar({
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
-export default function WordsScreen() {
+function VocabScreen() {
   const { theme: t } = useTheme();
   const queryClient = useQueryClient();
+  const session = authClient.useSession();
+  const userId = session.data?.user?.id ?? "";
+
   const [activeWordTab, setActiveWordTab] = useState<"vocab" | "course">("vocab");
   const [selectedPos, setSelectedPos] = useState("all");
   const [selectedGender, setSelectedGender] = useState("all");
@@ -709,6 +722,18 @@ export default function WordsScreen() {
   const [addLoading, setAddLoading] = useState(false);
   const [lastResult, setLastResult] = useState<{ added: number; skipped: number; badges: string[] } | null>(null);
   const [flashcardWord, setFlashcardWord] = useState<any | null>(null);
+  // Bump this to force re-read from local DB after sync completes
+  const [syncVersion, setSyncVersion] = useState(0);
+
+  // Subscribe to sync state changes so the word list refreshes after sync
+  useEffect(() => {
+    const unsub = subscribeSyncState((s) => {
+      if (s.status === "idle" && s.pendingCount === 0) {
+        setSyncVersion((v) => v + 1);
+      }
+    });
+    return unsub;
+  }, []);
 
   const genderFilterApplicable = selectedPos === "all" || POS_WITH_GENDER.has(selectedPos);
 
@@ -729,57 +754,48 @@ export default function WordsScreen() {
     setSelectedPracticed("all");
   }, []);
 
+  // Read words from local SQLite (offline-first)
   const words = useQuery({
-    queryKey: ["words", selectedPos, selectedGender, selectedCefr, search],
-    queryFn: async () => {
-      const params: Record<string, string> = {};
-      if (selectedPos !== "all") params.pos = selectedPos;
-      if (selectedGender !== "all" && genderFilterApplicable) params.gender = selectedGender;
-      if (selectedCefr !== "all") params.cefr = selectedCefr;
-      if (search) params.search = search;
-      return (await api.words.$get({ query: params })).json();
+    queryKey: ["words", selectedPos, selectedGender, selectedCefr, search, syncVersion, userId],
+    queryFn: () => {
+      if (!userId) return { words: [] };
+      const filters: Record<string, string> = {};
+      if (selectedPos !== "all") filters.pos = selectedPos;
+      if (selectedGender !== "all" && genderFilterApplicable) filters.gender = selectedGender;
+      if (selectedCefr !== "all") filters.cefr = selectedCefr;
+      if (search) filters.search = search;
+      return { words: getWords(userId, filters) };
     },
-    staleTime: 30_000,
+    staleTime: 5_000,
     placeholderData: keepPreviousData,
   });
 
-  const deleteWord = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`${baseUrl}/api/words/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["words"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
-    },
-    onError: () => Alert.alert("Error", "Failed to delete word"),
-  });
-
   const handleAddWords = useCallback(async (wordInput: string) => {
+    if (!userId) return;
     setAddLoading(true);
     setLastResult(null);
     try {
-      const res = await api.words.add.$post({ json: { words: wordInput } });
-      const data = await res.json() as any;
+      const added = addWordOffline(userId, wordInput);
+      // Refresh local list immediately
       queryClient.invalidateQueries({ queryKey: ["words"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
-      queryClient.invalidateQueries({ queryKey: ["review"] });
-
-      const added = data.added?.length ?? 0;
-      const skipped = data.skipped?.length ?? 0;
-      const badges = data.newBadges ?? [];
-      setLastResult({ added, skipped, badges });
+      setLastResult({ added: added.length, skipped: 0, badges: [] });
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to add words");
     } finally {
       setAddLoading(false);
     }
-  }, [queryClient]);
+  }, [userId, queryClient]);
 
-  const handleDelete = useCallback((id: string) => deleteWord.mutate(id), [deleteWord]);
+  const handleDelete = useCallback((id: string) => {
+    if (!userId) return;
+    try {
+      deleteWordLocally(userId, id);
+      queryClient.invalidateQueries({ queryKey: ["words"] });
+    } catch {
+      Alert.alert("Error", "Failed to delete word");
+    }
+  }, [userId, queryClient]);
+
   const handleWordTap = useCallback((word: any) => setFlashcardWord(word), []);
   const handleCloseFlashcard = useCallback(() => setFlashcardWord(null), []);
   const handleCloseAdd = useCallback(() => { setShowAdd(false); setLastResult(null); }, []);
@@ -982,8 +998,6 @@ const fcStyles = StyleSheet.create({
   cardWrapper: { flex: 1, justifyContent: "center", minHeight: 220 },
   card: {
     borderRadius: 24, padding: 24,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4, shadowRadius: 20, elevation: 10,
     justifyContent: "space-between", minHeight: 220,
     backfaceVisibility: "hidden",
   },
@@ -1004,7 +1018,6 @@ const fcStyles = StyleSheet.create({
   notesText: { fontSize: 12, lineHeight: 17 },
   doneBtn: {
     borderRadius: 20, paddingVertical: 16, alignItems: "center", marginTop: 20,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4,
   },
   doneBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
 });
@@ -1012,8 +1025,7 @@ const fcStyles = StyleSheet.create({
 const listStyles = StyleSheet.create({
   wordCard: {
     borderRadius: 16, padding: 14, marginBottom: 10,
-    flexDirection: "row", shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 6, elevation: 2, minHeight: ITEM_HEIGHT - 10,
+    flexDirection: "row", minHeight: ITEM_HEIGHT - 10,
   },
   wordCardLeft: { flex: 1 },
   wordCardHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 3, flexWrap: "wrap" },
@@ -1086,3 +1098,10 @@ const screenStyles = StyleSheet.create({
   emptyBtn: { borderRadius: 20, paddingVertical: 14, paddingHorizontal: 28 },
   emptyBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
 });
+
+export default function WordsScreen() {
+  const { mode } = useAppMode();
+  if (mode === "grammar") return <GrammarScreen />;
+  if (mode === "learn")   return <LearnScreen />;
+  return <VocabScreen />;
+}

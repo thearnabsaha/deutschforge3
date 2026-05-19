@@ -1,45 +1,25 @@
-# Grammar Practice Tab — Task Plan
+# Offline-First Sync
 
-## What we're building
-- New "Practice" tab in grammar-chapter.tsx (the chapter detail screen)
-- 100 MCQ questions per chapter, split into 10 levels (10 questions each)
-- Level unlocks sequentially (complete level 1 → unlock level 2, etc.)
-- Chapter completion = lesson read (visited) + ALL 10 levels passed
-- Can redo any completed level anytime
+## Files to create
+- packages/mobile/lib/localDb.ts       — expo-sqlite setup + schema
+- packages/mobile/lib/syncQueue.ts     — pending ops queue
+- packages/mobile/lib/offlineStore.ts  — all CRUD (read/write local, enqueue)
+- packages/mobile/lib/useNetwork.ts    — online/offline hook via NetInfo
+- packages/mobile/lib/syncEngine.ts    — push queue to server + pull from server
 
-## Data Architecture
-- `grammarPracticeData.ts` — 100 Q per chapter for ALL 61 chapters (AI-generated inline)
-  - Q format: { q: string, options: string[4], answer: number (0-3) }
-  - 10 levels × 10 questions = 100 per chapter
-  - Store as: `Record<chapterId, Question[]>` (100 items, sliced by level)
-  
-- `grammarProgress.ts` — extend ChapterProgress:
-  - `practiceLevel: number` — highest level completed (0 = none)
-  - `practiceLevelScores: Record<levelIndex, { correct: number, total: number, completedAt: number }>` 
-  - chapter "complete" = completedAt != null AND practiceLevel >= 10
+## Files to modify
+- packages/mobile/app/(tabs)/words.tsx     — swap API → offlineStore
+- packages/mobile/app/(tabs)/study.tsx     — swap words fetch → offlineStore
+- packages/mobile/app/study/flashcard.tsx  — swap review submit → offlineStore
+- packages/mobile/lib/AppShell.tsx         — add offline banner + sync status
+- packages/mobile/app/_layout.tsx          — init localDb + start sync engine on boot
 
-## UI Flow
-1. Practice tab in grammar-chapter.tsx shows 10 level cards
-2. Tap level → full-screen quiz (10 questions, one at a time)
-3. After each answer → show correct/wrong feedback + explanation
-4. After all 10 → score screen (X/10) → "Next Level" or "Retry"
-5. Pass = score ≥ 6/10 → unlocks next level + saves progress
+## Server additions (for sync endpoints)
+- packages/web/src/api/routes/sync.ts      — POST /api/sync/push, GET /api/sync/pull
 
-## Completion Logic (grammar-chapter.tsx)
-- "Mark as done" button REMOVED / replaced by auto-completion
-- Chapter auto-completes when: visited + all 10 levels passed (≥6/10 each)
-- User can still manually mark done (keep the button as fallback)
-
-## Files to create/edit
-1. CREATE: `packages/mobile/lib/grammarPracticeData.ts` — 100 Q × 61 chapters
-2. EDIT: `packages/mobile/lib/grammarProgress.ts` — add practice fields
-3. EDIT: `packages/mobile/app/grammar-chapter.tsx` — add Practice tab + quiz flow
-4. EDIT: `packages/mobile/app/grammar.tsx` — update completion logic display
-
-## Steps
-- [x] Plan
-- [ ] Write grammarPracticeData.ts (61 chapters × 100 Q each) — BIG file
-- [ ] Update grammarProgress.ts types + functions
-- [ ] Build Practice tab UI + quiz screen in grammar-chapter.tsx
-- [ ] Wire completion logic
-- [ ] Test
+## Strategy
+- Local SQLite mirrors: words, cards, reviews, userStats, sync_queue
+- On any write: write local first, enqueue op
+- On reconnect: flush queue → server, then pull latest data down
+- Conflict: server wins for words/cards, append-only for reviews
+- FSRS runs client-side using ts-fsrs (already a dep on web, add to mobile)

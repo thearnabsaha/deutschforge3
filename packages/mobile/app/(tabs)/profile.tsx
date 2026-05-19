@@ -24,11 +24,15 @@ import {
   RefreshCw,
   LogOut,
   User,
+  ArrowLeft,
 } from "lucide-react-native";
 import { api, baseUrl } from "../../lib/api";
 import { authClient } from "../../lib/auth";
 import { useTheme } from "../../lib/theme";
+import { useAppMode } from "../../lib/appMode";
 import { Storage } from "../../lib/storage";
+import { resetProgress } from "../../lib/syllabusProgress";
+import { resetGrammarProgress } from "../../lib/grammarProgress";
 import { DeutschForgeMascot } from "../../components/DeutschForgeMascot";
 import { BadgeIcon, getBadgeTierAndType, TIER_LABELS } from "../../components/BadgeIcon";
 
@@ -133,6 +137,8 @@ export default function ProfileScreen() {
   const { data: session } = authClient.useSession();
   const { theme: t } = useTheme();
   const router = useRouter();
+  const { mode, modeConfig } = useAppMode();
+  const modeColor = modeConfig.color;
 
   const stats = useQuery({
     queryKey: ["stats"],
@@ -184,6 +190,8 @@ export default function ProfileScreen() {
               await Storage.removeItem(CUSTOM_NAMES_KEY);
               await Storage.removeItem(EXAM_HISTORY_KEY);
               await Storage.removeItem(BOOK_ADDED_SETS_KEY);
+              await resetProgress();
+              await resetGrammarProgress();
               queryClient.invalidateQueries({ queryKey: ["words"] });
               queryClient.invalidateQueries({ queryKey: ["stats"] });
               queryClient.invalidateQueries({ queryKey: ["review"] });
@@ -244,20 +252,29 @@ export default function ProfileScreen() {
   const totalBadges = badges.data?.badges?.length ?? 0;
 
   const statItems = [
-    { icon: <Flame size={20} color={t.primary} strokeWidth={2} />, num: data?.streak ?? 0, label: "Current Streak" },
-    { icon: <Zap size={20} color={t.accent} strokeWidth={2} />, num: data?.longestStreak ?? 0, label: "Best Streak" },
-    { icon: <BookOpen size={20} color={t.primary} strokeWidth={2} />, num: data?.wordCount ?? 0, label: "Total Words" },
-    { icon: <CheckCircle size={20} color={t.accent} strokeWidth={2} />, num: data?.totalReviews ?? 0, label: "Total Reviews" },
+    { icon: <Flame size={20} color={modeColor} strokeWidth={2} />, num: data?.streak ?? 0, label: "Current Streak" },
+    { icon: <Zap size={20} color={modeColor} strokeWidth={2} />, num: data?.longestStreak ?? 0, label: "Best Streak" },
+    { icon: <BookOpen size={20} color={modeColor} strokeWidth={2} />, num: data?.wordCount ?? 0, label: "Total Words" },
+    { icon: <CheckCircle size={20} color={modeColor} strokeWidth={2} />, num: data?.totalReviews ?? 0, label: "Total Reviews" },
   ];
 
   useShellTopBar({
     left: (
       <>
-        <User size={22} color={t.primary} strokeWidth={2.5} />
+        {mode === "grammar" && (
+          <TouchableOpacity
+            onPress={() => router.replace("/(tabs)")}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ marginRight: 4 }}
+          >
+            <ArrowLeft size={22} color={t.text} strokeWidth={2.5} />
+          </TouchableOpacity>
+        )}
+        <User size={22} color={modeColor} strokeWidth={2.5} />
         <Text style={[styles.headerTitle, { color: t.text }]}>Profile</Text>
       </>
     ),
-    accent: t.primary,
+    accent: modeColor,
   });
 
   return (
@@ -305,10 +322,10 @@ export default function ProfileScreen() {
         <View style={[styles.card, { backgroundColor: t.surface }]}>
           <View style={styles.xpHeader}>
             <Text style={[styles.cardTitle, { color: t.text }]}>XP Progress</Text>
-            <Text style={[styles.xpTotal, { color: t.accent }]}>{data?.xp ?? 0} XP</Text>
+            <Text style={[styles.xpTotal, { color: modeColor }]}>{data?.xp ?? 0} XP</Text>
           </View>
           <View style={[styles.xpBarBg, { backgroundColor: t.surfaceAlt }]}>
-            <View style={[styles.xpBarFill, { width: `${Math.min(xpProgress * 100, 100)}%` as any, backgroundColor: t.accent }]} />
+            <View style={[styles.xpBarFill, { width: `${Math.min(xpProgress * 100, 100)}%` as any, backgroundColor: modeColor }]} />
           </View>
           <Text style={[styles.xpSub, { color: t.textMuted }]}>
             {(xpForNext - (data?.xp ?? 0))} XP to Level {(data?.level ?? 1) + 1}
@@ -334,7 +351,7 @@ export default function ProfileScreen() {
         </View>
 
         {badges.isLoading ? (
-          <ActivityIndicator color={t.primary} style={{ marginVertical: 20 }} />
+          <ActivityIndicator color={modeColor} style={{ marginVertical: 20 }} />
         ) : (
           <BadgeGrid badges={badges.data?.badges ?? []} t={t} />
         )}

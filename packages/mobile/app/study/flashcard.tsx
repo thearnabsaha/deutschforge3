@@ -17,6 +17,8 @@ import { Volume2, ChevronLeft, Trophy, Award } from "lucide-react-native";
 import { api } from "../../lib/api";
 import { DeutschForgeMascot } from "../../components/DeutschForgeMascot";
 import { useTheme } from "../../lib/theme";
+import { authClient } from "../../lib/auth";
+import { getDueCards, submitReviewOffline } from "../../lib/offlineStore";
 import type { StudyWord } from "../(tabs)/study";
 
 const RATING_COLORS = { 1: "#FF4B4B", 2: "#FF9F1C", 3: "#58CC02", 4: "#1CB0F6" } as const;
@@ -198,19 +200,31 @@ export default function FlashcardMode() {
   const { theme: t } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const session = authClient.useSession();
+  const userId = session.data?.user?.id ?? "";
   const params = useLocalSearchParams<{ setId: string; setName: string; words: string; allWords: string }>();
 
   const setWords: StudyWord[] = useMemo(() => {
     try { return JSON.parse(params.words ?? "[]"); } catch { return []; }
   }, [params.words]);
 
+  // Load due cards from local SQLite — works offline
   const dueCards = useQuery({
-    queryKey: ["review", "due", params.setId],
-    queryFn: async () => {
-      const res = await api.review.due.$get();
-      const data = await res.json();
+    queryKey: ["review", "due", params.setId, userId],
+    queryFn: () => {
+      if (!userId) return { cards: [] };
       const setWordIds = new Set(setWords.map((w) => w.id));
-      return { cards: data.cards.filter((c: any) => setWordIds.has(c.word.id)) };
+      const all = getDueCards(userId, 200);
+      const filtered = setWordIds.size > 0
+        ? all.filter((c) => setWordIds.has(c.word.id))
+        : all;
+      // Shape to match the existing component expectations
+      return {
+        cards: filtered.map((c) => ({
+          card: { id: c.card.id },
+          word: c.word,
+        })),
+      };
     },
     staleTime: 0,
   });
@@ -223,27 +237,17 @@ export default function FlashcardMode() {
   const [newBadges, setNewBadges] = useState<string[]>([]);
   const [sessionRatings, setSessionRatings] = useState<number[]>([]);
 
-  const submitReview = useMutation({
-    mutationFn: async (data: { cardId: string; rating: number; sessionRatings?: number[]; sessionComplete?: boolean }) =>
-      (await api.review.submit.$post({ json: data })).json(),
-    onSuccess: (data: any) => {
-      setXpGained((prev) => prev + (data.xpEarned ?? 0));
-      if (data.newBadges?.length) setNewBadges((prev) => [...prev, ...data.newBadges]);
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
-    },
-  });
-
   const cards = dueCards.data?.cards ?? [];
   const currentCard = cards[currentIndex];
 
   const handleRate = useCallback((rating: 1 | 2 | 3 | 4) => {
-    if (!currentCard) return;
+    if (!currentCard || !userId) return;
     const allRatings = [...sessionRatings, rating];
     setSessionRatings(allRatings);
     setCardsReviewed((p) => p + 1);
     const isLast = currentIndex === cards.length - 1;
 
-    // Advance immediately — no await
+    // Advance immediately — optimistic
     if (isLast) {
       setSessionDone(true);
     } else {
@@ -251,14 +255,21 @@ export default function FlashcardMode() {
       setCurrentIndex((p) => p + 1);
     }
 
-    // Submit in background
-    submitReview.mutate({
-      cardId: currentCard.card.id,
-      rating,
-      sessionRatings: allRatings,
-      sessionComplete: isLast,
-    });
-  }, [currentCard, currentIndex, cards.length, sessionRatings, submitReview]);
+    // Submit offline — writes to local DB + enqueues for sync
+    try {
+      const result = submitReviewOffline(
+        userId,
+        currentCard.card.id,
+        rating,
+        allRatings,
+        isLast,
+      );
+      setXpGained((prev) => prev + (result.xpEarned ?? 0));
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    } catch (err) {
+      console.warn("[flashcard] submitReviewOffline error:", err);
+    }
+  }, [currentCard, currentIndex, cards.length, sessionRatings, userId, queryClient]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (dueCards.isLoading) {

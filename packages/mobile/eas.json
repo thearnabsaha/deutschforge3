@@ -1,17 +1,28 @@
 {
+  "cli": {
+    "version": ">= 18.0.0"
+  },
   "build": {
-    "production": {},
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
-    "preview": {}
-  },
-  "submit": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "production": {
-      "ios": {
-        "ascApiKeyPath": "./keys/AuthKey.p8"
+      "android": {
+        "buildType": "apk"
       }
     }
+  },
+  "submit": {
+    "production": {}
   }
 }

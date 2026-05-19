@@ -28,6 +28,17 @@ export interface Theme {
   tabBar: string;
   tabBarBorder: string;
   card: string;
+  grammarTabBar?: string;
+  grammarTabBarBorder?: string;
+  grammarSurface?: string;
+  grammarSurfaceAlt?: string;
+  grammarBorder?: string;
+  grammarText?: string;
+  grammarTextSecondary?: string;
+  grammarTextMuted?: string;
+  grammarPrimary?: string;
+  grammarPrimaryDark?: string;
+  grammarAccent?: string;
   dark: boolean;
 }
 
@@ -50,6 +61,17 @@ export const THEMES: Record<Exclude<ThemeKey, "system">, Theme> = {
     tabBar: "#FFFFFF",
     tabBarBorder: "#E5E5E5",
     card: "#FFFFFF",
+    grammarTabBar: "#F4EDFF",
+    grammarTabBarBorder: "#D9B8FF",
+    grammarSurface: "#FBF7FF",
+    grammarSurfaceAlt: "#F3E8FF",
+    grammarBorder: "#C084FC",
+    grammarText: "#2B124C",
+    grammarTextSecondary: "#5B3B7A",
+    grammarTextMuted: "#8B6AA8",
+    grammarPrimary: "#A855F7",
+    grammarPrimaryDark: "#9333EA",
+    grammarAccent: "#C084FC",
     dark: false,
   },
   dark: {
@@ -70,6 +92,17 @@ export const THEMES: Record<Exclude<ThemeKey, "system">, Theme> = {
     tabBar: "#1E1E1E",
     tabBarBorder: "#333333",
     card: "#1E1E1E",
+    grammarTabBar: "#2A153D",
+    grammarTabBarBorder: "#5B21B6",
+    grammarSurface: "#231033",
+    grammarSurfaceAlt: "#31164A",
+    grammarBorder: "#7C3AED",
+    grammarText: "#F6EBFF",
+    grammarTextSecondary: "#D8B4FE",
+    grammarTextMuted: "#B88AE8",
+    grammarPrimary: "#C084FC",
+    grammarPrimaryDark: "#A855F7",
+    grammarAccent: "#E879F9",
     dark: true,
   },
   forest: {
@@ -90,6 +123,17 @@ export const THEMES: Record<Exclude<ThemeKey, "system">, Theme> = {
     tabBar: "#1A2E1A",
     tabBarBorder: "#2E472E",
     card: "#1A2E1A",
+    grammarTabBar: "#2A153D",
+    grammarTabBarBorder: "#5B21B6",
+    grammarSurface: "#231033",
+    grammarSurfaceAlt: "#31164A",
+    grammarBorder: "#7C3AED",
+    grammarText: "#F6EBFF",
+    grammarTextSecondary: "#D8B4FE",
+    grammarTextMuted: "#B88AE8",
+    grammarPrimary: "#C084FC",
+    grammarPrimaryDark: "#A855F7",
+    grammarAccent: "#E879F9",
     dark: true,
   },
   ocean: {
@@ -110,6 +154,17 @@ export const THEMES: Record<Exclude<ThemeKey, "system">, Theme> = {
     tabBar: "#0D1F3C",
     tabBarBorder: "#1A3A6B",
     card: "#0D1F3C",
+    grammarTabBar: "#2A153D",
+    grammarTabBarBorder: "#5B21B6",
+    grammarSurface: "#231033",
+    grammarSurfaceAlt: "#31164A",
+    grammarBorder: "#7C3AED",
+    grammarText: "#F6EBFF",
+    grammarTextSecondary: "#D8B4FE",
+    grammarTextMuted: "#B88AE8",
+    grammarPrimary: "#C084FC",
+    grammarPrimaryDark: "#A855F7",
+    grammarAccent: "#E879F9",
     dark: true,
   },
   sunset: {
@@ -130,6 +185,17 @@ export const THEMES: Record<Exclude<ThemeKey, "system">, Theme> = {
     tabBar: "#FFFFFF",
     tabBarBorder: "#FFD7B5",
     card: "#FFFFFF",
+    grammarTabBar: "#F4EDFF",
+    grammarTabBarBorder: "#D9B8FF",
+    grammarSurface: "#FBF7FF",
+    grammarSurfaceAlt: "#F3E8FF",
+    grammarBorder: "#C084FC",
+    grammarText: "#2B124C",
+    grammarTextSecondary: "#5B3B7A",
+    grammarTextMuted: "#8B6AA8",
+    grammarPrimary: "#A855F7",
+    grammarPrimaryDark: "#9333EA",
+    grammarAccent: "#C084FC",
     dark: false,
   },
 };

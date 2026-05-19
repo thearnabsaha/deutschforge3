@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useAppMode } from "../../lib/appMode";
 import {
   View,
   Text,
@@ -16,14 +17,18 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
+import { authClient } from "../../lib/auth";
+import { getWords, addWordOffline } from "../../lib/offlineStore";
+import { subscribeSyncState } from "../../lib/syncEngine";
 import {
   Plus,
   Layers,
   Pencil,
   Check,
   X,
+  BookOpen,
 } from "lucide-react-native";
-import { api } from "../../lib/api";
+// api import removed — all data goes through offlineStore
 import { useTheme } from "../../lib/theme";
 import { useShellTopBar } from "../../lib/AppShell";
 import { Storage } from "../../lib/storage";
@@ -154,11 +159,12 @@ const renS = StyleSheet.create({
 
 // ─── Create Set Modal ─────────────────────────────────────────────────────────
 
-function CreateSetModal({ visible, onClose, onCreated, allWords }: {
+function CreateSetModal({ visible, onClose, onCreated, allWords, userId }: {
   visible: boolean;
   onClose: () => void;
   onCreated: (set: CustomSet, addedWords: StudyWord[]) => void;
   allWords: StudyWord[];
+  userId: string;
 }) {
   const { theme: t } = useTheme();
   const queryClient = useQueryClient();
@@ -189,15 +195,30 @@ function CreateSetModal({ visible, onClose, onCreated, allWords }: {
     let addedWords: StudyWord[] = [];
 
     try {
-      // Step 1: add words to library if any were entered
-      if (wordInput.trim()) {
+      // Step 1: add words to library if any were entered (offline-first)
+      if (wordInput.trim() && userId) {
         setStatus("Adding words to library…");
-        const res = await api.words.add.$post({ json: { words: wordInput.trim() } });
-        const data = await res.json() as any;
+        const added = addWordOffline(userId, wordInput.trim());
         queryClient.invalidateQueries({ queryKey: ["words"] });
-        queryClient.invalidateQueries({ queryKey: ["stats"] });
-        queryClient.invalidateQueries({ queryKey: ["review"] });
-        addedWords = (data.added ?? []) as StudyWord[];
+        // Shape to StudyWord-compatible (minimal — set only needs IDs)
+        addedWords = added.map((w) => ({
+          id: w.id,
+          german: w.german,
+          displayGerman: null,
+          english: "(syncing...)",
+          partOfSpeech: "unknown",
+          gender: null,
+          genderCategory: null,
+          cefrLevel: null,
+          exampleSentence: null,
+          exampleTranslation: null,
+          aiNotes: null,
+          ipa: null,
+          reps: 0,
+          lapses: 0,
+          stability: null,
+          state: null,
+        }));
       }
 
       // Step 2: create the set
@@ -391,9 +412,11 @@ const sc = StyleSheet.create({
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
-export default function StudyScreen() {
+function StudyScreenInner() {
   const { theme: t } = useTheme();
   const router = useRouter();
+  const session = authClient.useSession();
+  const userId = session.data?.user?.id ?? "";
 
   const [customSets, setCustomSets] = useState<CustomSet[]>([]);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
@@ -401,6 +424,7 @@ export default function StudyScreen() {
   const [showCreate, setShowCreate] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [examHistory, setExamHistory] = useState<ExamHistoryEntry[]>([]);
+  const [syncVersion, setSyncVersion] = useState(0);
 
   // ── Shell top bar (must be before any early returns) ──
   useShellTopBar({
@@ -431,12 +455,21 @@ export default function StudyScreen() {
     Storage.getItem(EXAM_HISTORY_KEY).then((raw) => {
       setExamHistory(raw ? JSON.parse(raw) : []);
     }).catch(() => {});
+
+    // Refresh words list when sync completes
+    const unsub = subscribeSyncState((s) => {
+      if (s.status === "idle") setSyncVersion((v) => v + 1);
+    });
+    return unsub;
   }, []);
 
   const wordsQuery = useQuery({
-    queryKey: ["words", "study-hub"],
-    queryFn: async () => (await api.words.$get({ query: {} })).json(),
-    staleTime: 30_000,
+    queryKey: ["words", "study-hub", syncVersion, userId],
+    queryFn: () => {
+      if (!userId) return { words: [] };
+      return { words: getWords(userId) };
+    },
+    staleTime: 5_000,
     gcTime: 10 * 60_000,
     placeholderData: (prev: any) => prev,
   });
@@ -549,6 +582,7 @@ export default function StudyScreen() {
           onClose={() => setShowCreate(false)}
           onCreated={handleCreated}
           allWords={allWords}
+          userId={userId}
         />
       </View>
     );
@@ -622,6 +656,7 @@ export default function StudyScreen() {
         onClose={() => setShowCreate(false)}
         onCreated={handleCreated}
         allWords={allWords}
+        userId={userId}
       />
     </View>
   );
@@ -655,3 +690,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, marginBottom: 8,
   },
 });
+
+// Grammar Study placeholder
+function GrammarStudyPlaceholder() {
+  const { theme: t } = useTheme();
+  useShellTopBar({
+    left: (
+      <>
+        <BookOpen size={22} color="#A855F7" strokeWidth={2.5} />
+        <Text style={{ fontSize: 20, fontWeight: "900", color: t.text }}>Study</Text>
+      </>
+    ),
+    accent: "#A855F7",
+  });
+  return (
+    <View style={{ flex: 1, backgroundColor: t.background, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <Text style={{ fontSize: 48, marginBottom: 16 }}>🚧</Text>
+      <Text style={{ fontSize: 22, fontWeight: "900", color: t.text, textAlign: "center", marginBottom: 8 }}>Coming Soon</Text>
+      <Text style={{ fontSize: 15, color: t.textMuted, textAlign: "center", lineHeight: 22 }}>Grammar study sessions will be available here soon.</Text>
+    </View>
+  );
+}
+
+export default function StudyScreen() {
+  const { mode } = useAppMode();
+  if (mode === "grammar") return <GrammarStudyPlaceholder />;
+  return <StudyScreenInner />;
+}

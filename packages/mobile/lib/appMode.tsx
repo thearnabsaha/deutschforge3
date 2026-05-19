@@ -36,6 +36,9 @@ export const MODE_CONFIGS: Record<AppMode, ModeConfig> = {
     darkColor: "#45A800",
     available: true,
   },
+  // Grammar takes over the full shell chrome, but we keep the default app mode on words.
+  // The purple theme is driven by the active grammar screen styling.
+  
   grammar: {
     key: "grammar",
     label: "Grammar",
@@ -69,7 +72,7 @@ const AppModeContext = createContext<AppModeContextValue>({
 });
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<AppMode>("learn");
+  const [mode, setModeState] = useState<AppMode>("words");
 
   useEffect(() => {
     Storage.getItem(STORAGE_KEY).then((val) => {

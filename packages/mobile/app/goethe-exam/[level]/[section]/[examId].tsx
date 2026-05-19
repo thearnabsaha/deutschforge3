@@ -28,6 +28,8 @@ import {
   LesenPart,
 } from "../../../../lib/goetheExamData";
 import { Storage } from "../../../../lib/storage";
+import { Audio } from "expo-av";
+import { HOEREN_AUDIO } from "../../../../lib/hoerenAudio";
 
 const RESULTS_KEY = "goethe_exam_results_v1";
 
@@ -98,6 +100,106 @@ const mcqStyles = StyleSheet.create({
   optionText: { flex: 1, fontSize: 14, lineHeight: 20 },
 });
 
+// ─── Audio Play Button ────────────────────────────────────────
+function TranscriptReveal({ audioContext, t }: { audioContext: string; t: any }) {
+  const [revealed, setRevealed] = React.useState(false);
+  return (
+    <View style={abStyles.container}>
+      <TouchableOpacity
+        style={[abStyles.btn, { backgroundColor: revealed ? t.surfaceAlt : "#5C6BC015", borderColor: "#5C6BC060" }]}
+        onPress={() => setRevealed((v) => !v)}
+        activeOpacity={0.7}
+      >
+        <Text style={abStyles.icon}>{revealed ? "🙈" : "📄"}</Text>
+        <Text style={[abStyles.label, { color: "#5C6BC0" }]}>
+          {revealed ? "Hide transcript" : "Show transcript"}
+        </Text>
+      </TouchableOpacity>
+      {revealed && (
+        <View style={[abStyles.transcript, { backgroundColor: t.surfaceAlt, borderColor: t.border, marginTop: 8 }]}>
+          <Text style={[abStyles.transcriptText, { color: t.textSecondary }]}>{audioContext}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function AudioPlayButton({ questionId, audioContext }: { questionId: string; audioContext: string }) {
+  const { theme: t } = useTheme();
+  const [playing, setPlaying] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const soundRef = React.useRef<Audio.Sound | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      soundRef.current?.unloadAsync();
+    };
+  }, []);
+
+  const handlePlay = async () => {
+    if (playing) {
+      await soundRef.current?.stopAsync();
+      setPlaying(false);
+      return;
+    }
+
+    const asset = HOEREN_AUDIO[questionId];
+    if (!asset) return; // no audio for dynamic exams
+
+    try {
+      setLoading(true);
+      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+      if (soundRef.current) {
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
+      const { sound } = await Audio.Sound.createAsync(asset, { shouldPlay: true });
+      soundRef.current = sound;
+      setPlaying(true);
+      setLoading(false);
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          setPlaying(false);
+        }
+      });
+    } catch (e) {
+      setLoading(false);
+      console.warn("Audio error:", e);
+    }
+  };
+
+  const hasAudio = !!HOEREN_AUDIO[questionId];
+
+  return (
+    <View style={abStyles.container}>
+      {hasAudio ? (
+        <TouchableOpacity
+          style={[abStyles.btn, { backgroundColor: playing ? "#5C6BC020" : "#5C6BC015", borderColor: "#5C6BC060" }]}
+          onPress={handlePlay}
+          activeOpacity={0.7}
+        >
+          <Text style={abStyles.icon}>{loading ? "⏳" : playing ? "⏹" : "▶️"}</Text>
+          <Text style={[abStyles.label, { color: "#5C6BC0" }]}>
+            {loading ? "Loading..." : playing ? "Stop audio" : "Play audio"}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TranscriptReveal audioContext={audioContext} t={t} />
+      )}
+    </View>
+  );
+}
+
+const abStyles = StyleSheet.create({
+  container: { marginBottom: 10 },
+  btn: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1.5, borderRadius: 10, padding: 12 },
+  icon: { fontSize: 18 },
+  label: { fontSize: 14, fontWeight: "600" },
+  transcript: { borderRadius: 10, borderWidth: 1, padding: 10 },
+  transcriptLabel: { fontSize: 11, fontWeight: "700", marginBottom: 4 },
+  transcriptText: { fontSize: 13, lineHeight: 18, fontStyle: "italic" },
+});
+
 // ─── True/False Component ─────────────────────────────────────
 function TFItem({
   question,
@@ -117,10 +219,7 @@ function TFItem({
   ];
   return (
     <View style={tfStyles.container}>
-      <View style={[tfStyles.audioCtx, { backgroundColor: t.surfaceAlt, borderColor: t.border }]}>
-        <Text style={[tfStyles.audioLabel, { color: t.textMuted }]}>🔊 Audio transcript:</Text>
-        <Text style={[tfStyles.audioText, { color: t.textSecondary }]}>{question.audioContext}</Text>
-      </View>
+      <AudioPlayButton questionId={question.id} audioContext={question.audioContext} />
       <Text style={[tfStyles.statement, { color: t.text }]}>„{question.statement}"</Text>
       <View style={tfStyles.row}>
         {options.map(({ label, value }) => {
@@ -151,9 +250,6 @@ function TFItem({
 
 const tfStyles = StyleSheet.create({
   container: { marginBottom: 20 },
-  audioCtx: { borderRadius: 10, borderWidth: 1, padding: 10, marginBottom: 10 },
-  audioLabel: { fontSize: 11, fontWeight: "700", marginBottom: 4 },
-  audioText: { fontSize: 13, lineHeight: 18, fontStyle: "italic" },
   statement: { fontSize: 15, fontWeight: "600", marginBottom: 12, lineHeight: 22 },
   row: { flexDirection: "row", gap: 10 },
   btn: { borderWidth: 1.5, borderRadius: 10, padding: 14, alignItems: "center" },
@@ -291,11 +387,11 @@ export default function GoetheExamRunner() {
           <Text style={[styles.partPoints, { color: t.textMuted }]}>{part.points} Punkte</Text>
         </View>
 
-        {/* Audio simulation notice */}
+        {/* Audio notice */}
         <View style={[styles.audioNotice, { backgroundColor: "#5C6BC020", borderColor: "#5C6BC040" }]}>
           <Text style={[styles.audioNoticeTitle, { color: "#5C6BC0" }]}>🎧 Listening Mode</Text>
           <Text style={[styles.audioNoticeText, { color: t.textSecondary }]}>
-            In the real exam, you hear audio recordings. Here, transcripts and context clues are provided so you can practice the question format.
+            Press ▶️ Play on each question to hear the audio. Listen carefully, then answer.
           </Text>
         </View>
 
