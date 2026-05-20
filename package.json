@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "node packages/web/dist/server/server.js",
+    "start": "cd packages/web && bun run server.ts",
     "build": "cd packages/web && bun install && bun run build",
     "postinstall": "cd packages/web && bun run build",
     "dev": "cd packages/web && bunx vite",

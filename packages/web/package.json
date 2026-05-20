@@ -6,8 +6,8 @@
     ".": "./src/api/index.ts"
   },
   "scripts": {
-    "build": "vite build && bun build server.ts --outdir dist/server --target node",
-    "start": "node dist/server/server.js",
+    "build": "vite build",
+    "start": "bun run server.ts",
     "start:bun": "bun dist/server/server.js",
     "dev": "vite",
     "lint": "eslint .",
