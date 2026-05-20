@@ -4,8 +4,8 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: bun install && cd packages/web && bun run build
-    startCommand: node packages/web/dist/server/server.js
+    buildCommand: bun install && bun run build
+    startCommand: bun start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

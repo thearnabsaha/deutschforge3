@@ -7,11 +7,10 @@
   ],
   "scripts": {
     "start": "node packages/web/dist/server/server.js",
-    "build": "cd packages/web && bun run build",
+    "build": "cd packages/web && bun install && bun run build",
     "dev": "cd packages/web && bunx vite",
     "dev:desktop": "cd packages/desktop && bunx vite",
     "dev:mobile": "cd packages/mobile && bunx expo start",
-    "build": "turbo build",
     "typecheck": "turbo typecheck",
     "db:generate": "turbo db:generate",
     "db:migrate": "turbo db:migrate",
