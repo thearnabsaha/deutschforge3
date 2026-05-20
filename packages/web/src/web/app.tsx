@@ -8,6 +8,9 @@ import SignupPage from "./pages/signup";
 import WordsPage from "./pages/words";
 import StudyPage from "./pages/study";
 import ProfilePage from "./pages/profile";
+import GrammarPage from "./pages/grammar";
+import LearnPage from "./pages/learn";
+import ExamsPage from "./pages/exams";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -60,6 +63,15 @@ function App() {
         </Route>
         <Route path="/profile">
           <AuthGuard><ProfilePage /></AuthGuard>
+        </Route>
+        <Route path="/grammar">
+          <AuthGuard><GrammarPage /></AuthGuard>
+        </Route>
+        <Route path="/learn">
+          <AuthGuard><LearnPage /></AuthGuard>
+        </Route>
+        <Route path="/exams">
+          <AuthGuard><ExamsPage /></AuthGuard>
         </Route>
         <Route>
           <Redirect to="/" />

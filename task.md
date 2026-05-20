@@ -1,25 +1,30 @@
-# Offline-First Sync
+# DeutschForge Web PWA Task
 
-## Files to create
-- packages/mobile/lib/localDb.ts       — expo-sqlite setup + schema
-- packages/mobile/lib/syncQueue.ts     — pending ops queue
-- packages/mobile/lib/offlineStore.ts  — all CRUD (read/write local, enqueue)
-- packages/mobile/lib/useNetwork.ts    — online/offline hook via NetInfo
-- packages/mobile/lib/syncEngine.ts    — push queue to server + pull from server
+## Goal
+- Add all mobile features to web
+- Make web a PWA
+- Match mobile layout on phone (bottom tab nav)
 
-## Files to modify
-- packages/mobile/app/(tabs)/words.tsx     — swap API → offlineStore
-- packages/mobile/app/(tabs)/study.tsx     — swap words fetch → offlineStore
-- packages/mobile/app/study/flashcard.tsx  — swap review submit → offlineStore
-- packages/mobile/lib/AppShell.tsx         — add offline banner + sync status
-- packages/mobile/app/_layout.tsx          — init localDb + start sync engine on boot
+## Done
+- [x] vite-plugin-pwa installed + vite.config.ts updated
+- [x] index.html updated with PWA meta tags
+- [x] Icons created (192, 512)
+- [x] Storage wrapper created (web localStorage)
+- [x] grammarData.ts, syllabusData.ts, syllabusProgress.ts, grammarProgress.ts copied to web
 
-## Server additions (for sync endpoints)
-- packages/web/src/api/routes/sync.ts      — POST /api/sync/push, GET /api/sync/pull
+## In Progress
+- [ ] Create new Layout with bottom tabs on mobile + sidebar on desktop
+- [ ] Grammar page (chapter browser A1/A2/B1 + chapter detail modal)
+- [ ] Learn page (zigzag path with units/levels)
+- [ ] Goethe Exams page (placeholder / basic)
+- [ ] Update app.tsx routes
+- [ ] Build verification
 
-## Strategy
-- Local SQLite mirrors: words, cards, reviews, userStats, sync_queue
-- On any write: write local first, enqueue op
-- On reconnect: flush queue → server, then pull latest data down
-- Conflict: server wins for words/cards, append-only for reviews
-- FSRS runs client-side using ts-fsrs (already a dep on web, add to mobile)
+## Files to Create/Modify
+- packages/web/src/web/components/layout.tsx — add bottom tab nav for mobile
+- packages/web/src/web/pages/grammar.tsx — new
+- packages/web/src/web/pages/grammar-chapter.tsx — new (modal/page)
+- packages/web/src/web/pages/learn.tsx — new
+- packages/web/src/web/pages/exams.tsx — new
+- packages/web/src/web/app.tsx — add routes
+- packages/web/src/web/styles.css — ensure mobile safe area

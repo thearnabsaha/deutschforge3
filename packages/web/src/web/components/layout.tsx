@@ -3,9 +3,23 @@ import { useAuth } from "../hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: "🏠" },
+  { href: "/", label: "Home", icon: "🏠" },
   { href: "/words", label: "Words", icon: "📚" },
   { href: "/study", label: "Study", icon: "🧠" },
+  { href: "/grammar", label: "Grammar", icon: "📖" },
+  { href: "/learn", label: "Learn", icon: "🎓" },
+  { href: "/exams", label: "Exams", icon: "📝" },
+  { href: "/profile", label: "Profile", icon: "👤" },
+];
+
+// Bottom nav for mobile — only 5 items (most important)
+const BOTTOM_NAV = [
+  { href: "/", label: "Home", icon: "🏠" },
+  { href: "/words", label: "Words", icon: "📚" },
+  { href: "/study", label: "Study", icon: "🧠" },
+  { href: "/grammar", label: "Grammar", icon: "📖" },
+  { href: "/learn", label: "Learn", icon: "🎓" },
+  { href: "/exams", label: "Exams", icon: "📝" },
   { href: "/profile", label: "Profile", icon: "👤" },
 ];
 
@@ -21,8 +35,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <aside className="w-60 bg-white border-r border-gray-200 flex flex-col fixed h-full z-10">
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden md:flex w-60 bg-white border-r border-gray-200 flex-col fixed h-full z-10">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <span className="text-2xl">⚒️</span>
@@ -30,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {NAV.map((item) => {
             const active = location === item.href;
             return (
@@ -69,10 +83,41 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 ml-60 p-8">
+      {/* ── Main content ── */}
+      <main className="flex-1 md:ml-60 p-4 md:p-8 pb-24 md:pb-8">
+        {/* Mobile top bar */}
+        <div className="md:hidden flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+          <span className="text-xl">⚒️</span>
+          <span className="text-lg font-bold text-gray-900">DeutschForge</span>
+        </div>
         {children}
       </main>
+
+      {/* ── Mobile bottom tab bar ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
+        <div className="flex">
+          {BOTTOM_NAV.map((item) => {
+            const active = location === item.href;
+            return (
+              <Link key={item.href} href={item.href}>
+                <span
+                  className={`flex flex-col items-center justify-center py-2 px-1 cursor-pointer transition-colors flex-1 min-w-0 ${
+                    active ? "text-indigo-600" : "text-gray-400"
+                  }`}
+                  style={{ minWidth: `${100 / BOTTOM_NAV.length}vw` }}
+                >
+                  <span className={`text-xl leading-none ${active ? "scale-110" : ""} transition-transform`}>
+                    {item.icon}
+                  </span>
+                  <span className="text-[9px] mt-0.5 font-medium truncate w-full text-center">
+                    {item.label}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
