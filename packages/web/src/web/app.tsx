@@ -12,6 +12,7 @@ import ProfilePage from "./pages/profile";
 import GrammarPage from "./pages/grammar";
 import LearnPage from "./pages/learn";
 import ExamsPage from "./pages/exams";
+import LandingPage from "./pages/landing";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -28,7 +29,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <Redirect to="/login" />;
+    return <Redirect to="/landing" />;
   }
 
   return <>{children}</>;
@@ -47,6 +48,10 @@ function App() {
   return (
     <Provider>
       <Switch>
+        {/* Public landing page */}
+        <Route path="/landing">
+          <GuestGuard><LandingPage /></GuestGuard>
+        </Route>
         <Route path="/login">
           <GuestGuard><LoginPage /></GuestGuard>
         </Route>
