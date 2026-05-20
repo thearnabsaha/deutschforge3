@@ -664,10 +664,10 @@ export default function LandingPage() {
           <span className="text-lg font-black tracking-tight">MoinMoin</span>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/login")} className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-white/8">
+          <button onClick={() => navigate("/login")} className="text-sm font-medium text-slate-300 hover:text-white transition-all px-4 py-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-md">
             Sign In
           </button>
-          <button onClick={() => navigate("/signup")} className="text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg transition-all hover:shadow-lg hover:shadow-indigo-600/30">
+          <button onClick={() => navigate("/signup")} className="text-sm font-bold text-white px-5 py-2 rounded-xl border border-indigo-500/50 hover:border-indigo-400/80 bg-indigo-500/20 hover:bg-indigo-500/35 backdrop-blur-md transition-all hover:shadow-lg hover:shadow-indigo-500/20">
             Get Started
           </button>
         </div>
@@ -703,16 +703,18 @@ export default function LandingPage() {
           <div className="hero-cta opacity-0 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => navigate("/signup")}
-              className="group relative flex items-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all duration-200 hover:scale-[1.03] hover:shadow-2xl hover:shadow-indigo-600/35 overflow-hidden"
+              className="group relative flex items-center gap-2.5 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all duration-200 hover:scale-[1.03] overflow-hidden border border-indigo-400/40 hover:border-indigo-300/60"
+              style={{ background: "rgba(99,102,241,0.25)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", boxShadow: "0 8px 32px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.1)" }}
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               Get Started Free
-              <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />
+              <ArrowRight size={18} className="relative transition-transform duration-200 group-hover:translate-x-1" />
             </button>
             <a
               href="https://expo.dev/artifacts/eas/p2Jc2rN5TAPiSYDc6FALGw.apk"
               download
-              className="group flex items-center gap-2.5 border border-emerald-500/40 hover:border-emerald-400/70 text-emerald-400 hover:text-emerald-300 font-bold text-base px-8 py-4 rounded-2xl transition-all duration-200 hover:bg-emerald-500/10 hover:scale-[1.03] backdrop-blur-sm"
+              className="group flex items-center gap-2.5 text-emerald-300 hover:text-white font-bold text-base px-8 py-4 rounded-2xl transition-all duration-200 hover:scale-[1.03] border border-emerald-400/30 hover:border-emerald-300/60"
+              style={{ background: "rgba(16,185,129,0.12)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", boxShadow: "0 8px 32px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.08)" }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
               Download APK
@@ -1016,18 +1018,18 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => navigate("/signup")}
-                className="group relative inline-flex items-center gap-3 text-white font-bold text-lg px-10 py-5 rounded-2xl transition-all duration-200 hover:scale-[1.03] overflow-hidden"
-                style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 0 40px rgba(99,102,241,0.35)" }}
+                className="group relative inline-flex items-center gap-3 text-white font-bold text-lg px-10 py-5 rounded-2xl transition-all duration-200 hover:scale-[1.03] overflow-hidden border border-indigo-400/40 hover:border-indigo-300/60"
+                style={{ background: "rgba(99,102,241,0.25)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 40px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.12)" }}
               >
-                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: "linear-gradient(135deg, #818cf8, #a78bfa)" }} />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 <span className="relative">Get Started Free</span>
                 <ArrowRight size={20} className="relative transition-transform duration-200 group-hover:translate-x-1" />
               </button>
               <a
                 href="https://expo.dev/artifacts/eas/p2Jc2rN5TAPiSYDc6FALGw.apk"
                 download
-                className="group inline-flex items-center gap-2.5 border border-emerald-500/40 hover:border-emerald-400/70 text-emerald-400 hover:text-emerald-300 font-bold text-lg px-10 py-5 rounded-2xl transition-all duration-200 hover:bg-emerald-500/10 hover:scale-[1.03] backdrop-blur-sm"
+                className="group inline-flex items-center gap-2.5 text-emerald-300 hover:text-white font-bold text-lg px-10 py-5 rounded-2xl transition-all duration-200 hover:scale-[1.03] border border-emerald-400/30 hover:border-emerald-300/60"
+                style={{ background: "rgba(16,185,129,0.12)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 40px rgba(16,185,129,0.18), inset 0 1px 0 rgba(255,255,255,0.08)" }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
                 Download APK
