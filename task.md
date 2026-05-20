@@ -1,30 +1,26 @@
-# DeutschForge Web PWA Task
+# DeutschForge Task Log
 
-## Goal
-- Add all mobile features to web
-- Make web a PWA
-- Match mobile layout on phone (bottom tab nav)
+## ✅ All Done
 
-## Done
-- [x] vite-plugin-pwa installed + vite.config.ts updated
-- [x] index.html updated with PWA meta tags
-- [x] Icons created (192, 512)
-- [x] Storage wrapper created (web localStorage)
-- [x] grammarData.ts, syllabusData.ts, syllabusProgress.ts, grammarProgress.ts copied to web
+### Web features added
+- [x] Grammar page (`/grammar`) — 3 levels (A1/A2/B1), chapter browser, modal with exercises
+- [x] Learn page (`/learn`) — zigzag path, unit headers, progress bar, locked/unlocked/completed nodes
+- [x] Exams page (`/exams`) — full Goethe exam browser with runner: Hören, Lesen, Schreiben, Sprechen
+- [x] Exam Analytics view
+- [x] All routes added to app.tsx
+- [x] PWA: vite-plugin-pwa v1.3.0, service worker, manifest, icons (192+512)
+- [x] Bottom tab nav (mobile): Home, Words, Study, Grammar, Learn, Exams, Profile
+- [x] Desktop sidebar with same 7 items
 
-## In Progress
-- [ ] Create new Layout with bottom tabs on mobile + sidebar on desktop
-- [ ] Grammar page (chapter browser A1/A2/B1 + chapter detail modal)
-- [ ] Learn page (zigzag path with units/levels)
-- [ ] Goethe Exams page (placeholder / basic)
-- [ ] Update app.tsx routes
-- [ ] Build verification
+### Lib files copied to web
+- grammarData.ts, grammarProgress.ts, syllabusData.ts, syllabusProgress.ts
+- goetheExamData.ts, examAnalytics.ts
+- storage.ts (localStorage wrapper)
 
-## Files to Create/Modify
-- packages/web/src/web/components/layout.tsx — add bottom tab nav for mobile
-- packages/web/src/web/pages/grammar.tsx — new
-- packages/web/src/web/pages/grammar-chapter.tsx — new (modal/page)
-- packages/web/src/web/pages/learn.tsx — new
-- packages/web/src/web/pages/exams.tsx — new
-- packages/web/src/web/app.tsx — add routes
-- packages/web/src/web/styles.css — ensure mobile safe area
+### Build
+- ✅ Clean build: `bun run build` in packages/web
+- ✅ PWA service worker generated
+- ✅ Pushed to GitHub (commit 68ae883) → Render auto-deploys
+
+### Remaining manual steps
+- User needs to set `WEBSITE_URL` in Render dashboard env vars

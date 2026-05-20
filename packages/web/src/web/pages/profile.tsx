@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { Layout } from "../components/layout";
 import { useAuth } from "../hooks/use-auth";
 import { BADGE_DEFS } from "./badge-defs";
+import { Flame, Trophy, Star, BookOpen, RotateCcw, Target, Award } from "lucide-react";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -92,7 +93,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Streak</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.streak} days 🔥</p>
+                <p className="text-2xl font-bold text-gray-900 flex items-center gap-1.5">{stats.streak} days <Flame size={18} className="text-orange-500" strokeWidth={2} /></p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Longest Streak</p>

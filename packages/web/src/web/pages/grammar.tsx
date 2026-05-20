@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "../components/layout";
+import { AlignLeft, Check, Search, ChevronRight, X, Mic } from "lucide-react";
 import {
   GRAMMAR_CHAPTERS,
   A2_GRAMMAR_CHAPTERS,
@@ -59,12 +60,12 @@ function ChapterModal({ chapter, onClose, progress }: {
                   {chapter.difficulty}
                 </span>
               )}
-              {done && <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Done</span>}
+              {done && <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1"><Check size={10} strokeWidth={3} /> Done</span>}
             </div>
             <h2 className="text-xl font-bold text-gray-900">{chapter.title}</h2>
             <p className="text-sm text-gray-500">{chapter.subtitle}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-2xl leading-none p-1">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-100"><X size={20} strokeWidth={2} /></button>
         </div>
 
         {/* Tabs */}
@@ -160,7 +161,7 @@ function ChapterModal({ chapter, onClose, progress }: {
                   <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-2">Common Mistakes</p>
                   {chapter.mistakes.map((m, i) => (
                     <div key={i} className="flex gap-2 bg-red-50 rounded-lg p-3 mb-2">
-                      <span className="text-red-400 flex-shrink-0">✗</span>
+                      <X size={14} className="text-red-400 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                       <p className="text-sm text-gray-700">{m}</p>
                     </div>
                   ))}
@@ -181,7 +182,7 @@ function ChapterModal({ chapter, onClose, progress }: {
                   <p className="text-xs font-bold text-purple-500 uppercase tracking-wider mb-2">Speaking Prompts</p>
                   {chapter.speakingPrompts.map((p, i) => (
                     <div key={i} className="flex gap-2 bg-purple-50 rounded-lg p-3 mb-2">
-                      <span className="text-purple-400 flex-shrink-0">🎤</span>
+                      <Mic size={14} className="text-purple-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
                       <p className="text-sm text-gray-700">{p}</p>
                     </div>
                   ))}
@@ -202,9 +203,9 @@ function ChapterModal({ chapter, onClose, progress }: {
           {!done && (
             <button
               onClick={handleComplete}
-              className="flex-1 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
+              className="flex-1 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
             >
-              Mark as Done ✓
+              <Check size={16} strokeWidth={3} /> Mark as Done
             </button>
           )}
         </div>
@@ -262,7 +263,7 @@ export default function GrammarPage() {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">📖</span>
+            <AlignLeft size={26} className="text-indigo-600" strokeWidth={2.5} />
             <h1 className="text-2xl font-bold text-gray-900">Grammar</h1>
           </div>
           <p className="text-gray-500">
@@ -327,7 +328,7 @@ export default function GrammarPage() {
                   className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
                   style={{ backgroundColor: (done ? "#22C55E" : currentLevel.color) + "22", color: done ? "#22C55E" : currentLevel.color }}
                 >
-                  {done ? "✓" : String(chapter.number).padStart(2, "0")}
+                  {done ? <Check size={16} strokeWidth={3} /> : String(chapter.number).padStart(2, "0")}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -341,7 +342,7 @@ export default function GrammarPage() {
                   </div>
                   <p className="text-sm text-gray-500 truncate">{chapter.subtitle}</p>
                 </div>
-                <span className="text-gray-300 group-hover:text-indigo-400 transition-colors text-lg flex-shrink-0">›</span>
+                <ChevronRight size={16} className="text-gray-300 group-hover:text-indigo-400 transition-colors flex-shrink-0" strokeWidth={2} />
               </button>
             );
           })}
@@ -349,7 +350,7 @@ export default function GrammarPage() {
 
         {chapters.length === 0 && (
           <div className="text-center py-12 text-gray-400">
-            <div className="text-4xl mb-2">🔍</div>
+            <Search size={40} className="mx-auto mb-2 opacity-40" strokeWidth={1.5} />
             <p>No chapters match "{search}"</p>
           </div>
         )}

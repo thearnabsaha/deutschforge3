@@ -1,6 +1,7 @@
 import { Route, Switch, Redirect } from "wouter";
 import { Provider } from "./components/provider";
 import { useAuth } from "./hooks/use-auth";
+import { Hammer } from "lucide-react";
 import { AgentFeedback, RunableBadge } from "@runablehq/website-runtime";
 import Dashboard from "./pages/index";
 import LoginPage from "./pages/login";
@@ -19,7 +20,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="text-4xl mb-3">⚒️</div>
+          <Hammer size={36} className="text-indigo-600 mb-3" strokeWidth={2} />
           <p className="text-gray-500">Loading...</p>
         </div>
       </div>

@@ -1,26 +1,19 @@
 import { useLocation, Link } from "wouter";
 import { useAuth } from "../hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  Home, BookOpen, Brain, AlignLeft, GraduationCap, ClipboardList, User,
+  Hammer, LogOut,
+} from "lucide-react";
 
 const NAV = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/words", label: "Words", icon: "📚" },
-  { href: "/study", label: "Study", icon: "🧠" },
-  { href: "/grammar", label: "Grammar", icon: "📖" },
-  { href: "/learn", label: "Learn", icon: "🎓" },
-  { href: "/exams", label: "Exams", icon: "📝" },
-  { href: "/profile", label: "Profile", icon: "👤" },
-];
-
-// Bottom nav for mobile — only 5 items (most important)
-const BOTTOM_NAV = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/words", label: "Words", icon: "📚" },
-  { href: "/study", label: "Study", icon: "🧠" },
-  { href: "/grammar", label: "Grammar", icon: "📖" },
-  { href: "/learn", label: "Learn", icon: "🎓" },
-  { href: "/exams", label: "Exams", icon: "📝" },
-  { href: "/profile", label: "Profile", icon: "👤" },
+  { href: "/",        label: "Home",    Icon: Home },
+  { href: "/words",   label: "Words",   Icon: BookOpen },
+  { href: "/study",   label: "Study",   Icon: Brain },
+  { href: "/grammar", label: "Grammar", Icon: AlignLeft },
+  { href: "/learn",   label: "Learn",   Icon: GraduationCap },
+  { href: "/exams",   label: "Exams",   Icon: ClipboardList },
+  { href: "/profile", label: "Profile", Icon: User },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -39,16 +32,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex w-60 bg-white border-r border-gray-200 flex-col fixed h-full z-10">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">⚒️</span>
-            <span className="text-xl font-bold text-gray-900">DeutschForge</span>
+            <Hammer size={22} className="text-indigo-600" strokeWidth={2.5} />
+            <span className="text-xl font-black text-gray-900">moinmoin</span>
           </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {NAV.map((item) => {
-            const active = location === item.href;
+          {NAV.map(({ href, label, Icon }) => {
+            const active = location === href;
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={href} href={href}>
                 <span
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
                     active
@@ -56,8 +49,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
-                  <span className="text-base">{item.icon}</span>
-                  {item.label}
+                  <Icon size={17} strokeWidth={active ? 2.5 : 2} />
+                  {label}
                 </span>
               </Link>
             );
@@ -76,8 +69,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full text-sm text-gray-500 hover:text-red-600 py-1.5 px-4 rounded-lg hover:bg-red-50 transition-colors text-left"
+            className="w-full flex items-center gap-2 text-sm text-gray-500 hover:text-red-600 py-1.5 px-4 rounded-lg hover:bg-red-50 transition-colors"
           >
+            <LogOut size={15} strokeWidth={2} />
             Sign out
           </button>
         </div>
@@ -87,30 +81,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 md:ml-60 p-4 md:p-8 pb-24 md:pb-8">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
-          <span className="text-xl">⚒️</span>
-          <span className="text-lg font-bold text-gray-900">DeutschForge</span>
+          <Hammer size={20} className="text-indigo-600" strokeWidth={2.5} />
+          <span className="text-lg font-black text-gray-900">moinmoin</span>
         </div>
         {children}
       </main>
 
       {/* ── Mobile bottom tab bar ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="flex">
-          {BOTTOM_NAV.map((item) => {
-            const active = location === item.href;
+          {NAV.map(({ href, label, Icon }) => {
+            const active = location === href;
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={href} href={href}>
                 <span
                   className={`flex flex-col items-center justify-center py-2 px-1 cursor-pointer transition-colors flex-1 min-w-0 ${
                     active ? "text-indigo-600" : "text-gray-400"
                   }`}
-                  style={{ minWidth: `${100 / BOTTOM_NAV.length}vw` }}
+                  style={{ minWidth: `${100 / NAV.length}vw` }}
                 >
-                  <span className={`text-xl leading-none ${active ? "scale-110" : ""} transition-transform`}>
-                    {item.icon}
-                  </span>
+                  <Icon
+                    size={20}
+                    strokeWidth={active ? 2.5 : 1.8}
+                    className={`transition-transform ${active ? "scale-110" : ""}`}
+                  />
                   <span className="text-[9px] mt-0.5 font-medium truncate w-full text-center">
-                    {item.label}
+                    {label}
                   </span>
                 </span>
               </Link>

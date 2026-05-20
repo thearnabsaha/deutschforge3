@@ -22,8 +22,8 @@ export default defineConfig(({ mode }) => {
 				registerType: "autoUpdate",
 				includeAssets: ["favicon.ico", "og-image.png", "icons/*.png"],
 				manifest: {
-					name: "DeutschForge",
-					short_name: "DeutschForge",
+					name: "moinmoin",
+					short_name: "moinmoin",
 					description: "Forge your German skills with spaced repetition, grammar, and guided lessons",
 					theme_color: "#4f46e5",
 					background_color: "#0f172a",

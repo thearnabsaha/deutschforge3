@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { signIn } from "../lib/auth";
+import { Hammer } from "lucide-react";
 import { Link } from "../components/link";
 import { toast } from "sonner";
 
@@ -47,8 +48,10 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-2">⚒️</div>
-          <h1 className="text-3xl font-bold text-gray-900">DeutschForge</h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Hammer size={32} className="text-indigo-600" strokeWidth={2.5} />
+            <h1 className="text-3xl font-black text-gray-900">moinmoin</h1>
+          </div>
           <p className="text-gray-500 mt-1">Master German vocabulary</p>
         </div>
 

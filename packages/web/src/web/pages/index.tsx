@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { api } from "../lib/api";
 import { Layout } from "../components/layout";
 import { useAuth } from "../hooks/use-auth";
+import { Star, Flame, BookOpen, RotateCcw, CheckCircle2 } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -42,17 +43,17 @@ export default function Dashboard() {
       <div className="max-w-4xl">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user?.name?.split(" ")[0]} 👋
+            Welcome back, {user?.name?.split(" ")[0]}
           </h1>
           <p className="text-gray-500 mt-1">Keep forging your German skills</p>
         </div>
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Level" value={stats?.level ?? 1} icon="⭐" color="yellow" />
-          <StatCard label="Streak" value={`${stats?.streak ?? 0}d`} icon="🔥" color="orange" />
-          <StatCard label="Words" value={stats?.wordCount ?? 0} icon="📚" color="blue" />
-          <StatCard label="Reviews" value={stats?.totalReviews ?? 0} icon="🔄" color="green" />
+          <StatCard label="Level"   value={stats?.level ?? 1}           Icon={Star}       color="yellow" />
+          <StatCard label="Streak"  value={`${stats?.streak ?? 0}d`}    Icon={Flame}      color="orange" />
+          <StatCard label="Words"   value={stats?.wordCount ?? 0}        Icon={BookOpen}   color="blue" />
+          <StatCard label="Reviews" value={stats?.totalReviews ?? 0}     Icon={RotateCcw}  color="green" />
         </div>
 
         {/* XP Progress */}
@@ -96,8 +97,8 @@ export default function Dashboard() {
               />
             </div>
             {stats.dailyGoalCompleted && (
-              <p className="text-green-600 text-sm mt-2 font-medium">
-                ✅ Daily goal completed!
+              <p className="text-green-600 text-sm mt-2 font-medium flex items-center gap-1.5">
+                <CheckCircle2 size={15} strokeWidth={2.5} /> Daily goal completed!
               </p>
             )}
           </div>
@@ -132,25 +133,25 @@ export default function Dashboard() {
 function StatCard({
   label,
   value,
-  icon,
+  Icon,
   color,
 }: {
   label: string;
   value: string | number;
-  icon: string;
+  Icon: React.ElementType;
   color: "yellow" | "orange" | "blue" | "green";
 }) {
   const colors = {
-    yellow: "bg-yellow-50 text-yellow-700",
-    orange: "bg-orange-50 text-orange-700",
-    blue: "bg-blue-50 text-blue-700",
-    green: "bg-green-50 text-green-700",
+    yellow: "bg-yellow-50 text-yellow-600",
+    orange: "bg-orange-50 text-orange-600",
+    blue:   "bg-blue-50   text-blue-600",
+    green:  "bg-green-50  text-green-600",
   };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className={`w-10 h-10 rounded-lg ${colors[color]} flex items-center justify-center text-xl mb-3`}>
-        {icon}
+      <div className={`w-10 h-10 rounded-lg ${colors[color]} flex items-center justify-center mb-3`}>
+        <Icon size={20} strokeWidth={2} />
       </div>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
       <p className="text-sm text-gray-500 mt-0.5">{label}</p>
