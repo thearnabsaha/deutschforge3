@@ -8,6 +8,7 @@
   "scripts": {
     "build": "vite build && bun build server.ts --outdir dist/server --target node",
     "start": "node dist/server/server.js",
+    "start:bun": "bun dist/server/server.js",
     "dev": "vite",
     "lint": "eslint .",
     "preview": "bun run build && vite preview",

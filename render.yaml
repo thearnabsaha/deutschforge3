@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: deutschforge
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd packages/web && bun install && bun run build
+    startCommand: cd packages/web && bun run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4200
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: AI_GATEWAY_BASE_URL
+        sync: false
+      - key: AI_GATEWAY_API_KEY
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: AUTUMN_SECRET_KEY
+        sync: false
+      - key: WEBSITE_URL
+        sync: false

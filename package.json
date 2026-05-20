@@ -16,6 +16,9 @@
     "db:push": "turbo db:push",
     "db:studio": "turbo db:studio"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@tursodatabase/api": "^1.9.2",
     "@types/bun": "latest",
