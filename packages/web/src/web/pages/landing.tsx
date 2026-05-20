@@ -709,12 +709,14 @@ export default function LandingPage() {
               Get Started Free
               <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />
             </button>
-            <button
-              onClick={() => navigate("/login")}
-              className="flex items-center gap-2 border border-white/15 hover:border-indigo-500/50 text-slate-400 hover:text-white font-medium text-base px-8 py-4 rounded-2xl transition-all duration-200 hover:bg-indigo-600/10 backdrop-blur-sm"
+            <a
+              href="https://expo.dev/artifacts/eas/p2Jc2rN5TAPiSYDc6FALGw.apk"
+              download
+              className="group flex items-center gap-2.5 border border-emerald-500/40 hover:border-emerald-400/70 text-emerald-400 hover:text-emerald-300 font-bold text-base px-8 py-4 rounded-2xl transition-all duration-200 hover:bg-emerald-500/10 hover:scale-[1.03] backdrop-blur-sm"
             >
-              Sign In
-            </button>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
+              Download APK
+            </a>
           </div>
           <p className="hero-note opacity-0 text-slate-600 text-sm mt-5">Free to use · No credit card needed</p>
         </div>
@@ -1011,16 +1013,26 @@ export default function LandingPage() {
             <p className="text-slate-400 text-lg mb-10 max-w-md mx-auto">
               Free to use. No credit card. Open it, add a word, and start building the habit.
             </p>
-            <button
-              onClick={() => navigate("/signup")}
-              className="group relative inline-flex items-center gap-3 text-white font-bold text-lg px-10 py-5 rounded-2xl transition-all duration-200 hover:scale-[1.03] overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 0 40px rgba(99,102,241,0.35)" }}
-            >
-              <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: "linear-gradient(135deg, #818cf8, #a78bfa)" }} />
-              <span className="relative">Get Started Free</span>
-              <ArrowRight size={20} className="relative transition-transform duration-200 group-hover:translate-x-1" />
-            </button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button
+                onClick={() => navigate("/signup")}
+                className="group relative inline-flex items-center gap-3 text-white font-bold text-lg px-10 py-5 rounded-2xl transition-all duration-200 hover:scale-[1.03] overflow-hidden"
+                style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 0 40px rgba(99,102,241,0.35)" }}
+              >
+                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ background: "linear-gradient(135deg, #818cf8, #a78bfa)" }} />
+                <span className="relative">Get Started Free</span>
+                <ArrowRight size={20} className="relative transition-transform duration-200 group-hover:translate-x-1" />
+              </button>
+              <a
+                href="https://expo.dev/artifacts/eas/p2Jc2rN5TAPiSYDc6FALGw.apk"
+                download
+                className="group inline-flex items-center gap-2.5 border border-emerald-500/40 hover:border-emerald-400/70 text-emerald-400 hover:text-emerald-300 font-bold text-lg px-10 py-5 rounded-2xl transition-all duration-200 hover:bg-emerald-500/10 hover:scale-[1.03] backdrop-blur-sm"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
+                Download APK
+              </a>
+            </div>
             <p className="text-slate-600 text-sm mt-5">
               Already have an account?{" "}
               <button onClick={() => navigate("/login")} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors">Sign in</button>
