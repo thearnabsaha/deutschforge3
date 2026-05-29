@@ -9,4 +9,9 @@ const baseURL =
 export const authClient = createAuthClient({
   baseURL,
   basePath: "/api/auth",
+  fetchOptions: {
+    headers: {
+      Origin: baseURL,
+    },
+  },
 });

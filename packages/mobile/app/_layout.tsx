@@ -3,6 +3,7 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { authClient } from "../lib/auth";
+import { authState } from "../lib/authState";
 import { ActivityIndicator, View, AppState, type AppStateStatus } from "react-native";
 import { ThemeProvider } from "../lib/theme";
 import { AppModeProvider } from "../lib/appMode";
@@ -63,6 +64,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isPending) return;
+    if (authState.loggingOut) return;
     const inAuthGroup = segments[0] === "(auth)";
     if (!session && !inAuthGroup) {
       router.replace("/(auth)/login");

@@ -27,6 +27,7 @@ import {
   ArrowLeft,
 } from "lucide-react-native";
 import { api, baseUrl } from "../../lib/api";
+import { authState } from "../../lib/authState";
 import { authClient } from "../../lib/auth";
 import { useTheme } from "../../lib/theme";
 import { useAppMode } from "../../lib/appMode";
@@ -162,12 +163,18 @@ export default function ProfileScreen() {
         text: "Log Out",
         style: "destructive",
         onPress: async () => {
-          await authClient.signOut();
+          authState.setLoggingOut(true);
+          try {
+            await authClient.signOut();
+          } catch (_) {}
           queryClient.clear();
+          router.replace("/(auth)/login");
+          // Clear flag after session has time to settle
+          setTimeout(() => authState.setLoggingOut(false), 3000);
         },
       },
     ]);
-  }, [queryClient]);
+  }, [queryClient, router]);
 
   const handleResetVocabulary = useCallback(() => {
     Alert.alert(

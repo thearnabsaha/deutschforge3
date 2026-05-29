@@ -11,9 +11,7 @@
     },
     "extra": {
       "apiUrl": "https://deutschforge3.onrender.com",
-      "eas": {
-        "projectId": "d90ed849-4ffe-4a04-905c-6855782e0b23"
-      }
+      "eas": {}
     },
     "ios": {
       "bundleIdentifier": "com.deutschforge_d4k2.runable",
@@ -38,10 +36,6 @@
     "plugins": [
       "expo-router",
       "expo-sqlite"
-    ],
-    "runtimeVersion": {
-      "policy": "sdkVersion"
-    },
-    "owner": "thearnabsaha"
+    ]
   }
 }
