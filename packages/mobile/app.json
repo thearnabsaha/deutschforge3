@@ -11,11 +11,17 @@
     },
     "extra": {
       "apiUrl": "https://deutschforge3.onrender.com",
-      "eas": {}
+      "eas": {
+        "projectId": "d90ed849-4ffe-4a04-905c-6855782e0b23"
+      },
+      "router": {}
     },
     "ios": {
-      "bundleIdentifier": "com.deutschforge_d4k2.runable",
-      "supportsTablet": true
+      "bundleIdentifier": "com.deutschforge.runable",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -36,6 +42,7 @@
     "plugins": [
       "expo-router",
       "expo-sqlite"
-    ]
+    ],
+    "owner": "thearnabsaha"
   }
 }
