@@ -43,6 +43,9 @@
       "expo-router",
       "expo-sqlite"
     ],
-    "owner": "thearnabsaha"
+    "owner": "thearnabsaha",
+    "updates": {
+      "enabled": false
+    }
   }
 }
