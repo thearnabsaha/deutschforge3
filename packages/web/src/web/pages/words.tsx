@@ -331,11 +331,16 @@ export default function WordsPage() {
 
   // ─── Derived data ───────────────────────────────────────────────
   const allWords: Word[] = wordsQuery.data?.words ?? [];
+  // allWordsForModal is always unfiltered — used both for modal picker AND for set word list
   const allWordsForModal: Word[] = allWordsQuery.data?.words ?? [];
   const sets: WordSet[] = setsQuery.data?.sets ?? [];
   const activeSet = sets.find((s) => s.id === activeSetId) ?? null;
   const activeSetWordIds = new Set(activeSet?.wordIds ?? []);
-  const words = activeSet ? allWords.filter((w) => activeSetWordIds.has(w.id)) : allWords;
+  // When viewing a set: use the unfiltered allWordsForModal as the source so set words always show
+  // regardless of pos/search filters active in the sidebar
+  const words = activeSet
+    ? allWordsForModal.filter((w) => activeSetWordIds.has(w.id))
+    : allWords;
 
   return (
     <Layout>
