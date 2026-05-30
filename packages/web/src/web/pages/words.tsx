@@ -48,12 +48,14 @@ const GENDER_COLOR: Record<string, string> = {
 function AddWordsToSetModal({
   set,
   allWords,
+  isLoadingWords,
   onAdd,
   onClose,
   isPending,
 }: {
   set: WordSet;
   allWords: Word[];
+  isLoadingWords: boolean;
   onAdd: (wordIds: string[]) => void;
   onClose: () => void;
   isPending: boolean;
@@ -115,7 +117,9 @@ function AddWordsToSetModal({
 
         {/* Word list */}
         <div className="flex-1 overflow-y-auto px-3 py-2">
-          {filtered.length === 0 ? (
+          {isLoadingWords ? (
+            <div className="text-center py-8 text-gray-400 text-sm">Loading words...</div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">
               {search ? "No matches" : "All words already in this set"}
             </div>
@@ -204,7 +208,7 @@ export default function WordsPage() {
     },
   });
 
-  // Fetch ALL words for the modal picker (no filters)
+  // Fetch ALL words for the modal picker (no filters) — always enabled so modal has data instantly
   const allWordsQuery = useQuery({
     queryKey: ["words-all"],
     queryFn: async () => {
@@ -212,7 +216,7 @@ export default function WordsPage() {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    enabled: showAddToSetModal,
+    staleTime: 60_000,
   });
 
   const setsQuery = useQuery({
@@ -339,7 +343,8 @@ export default function WordsPage() {
       {showAddToSetModal && activeSet && (
         <AddWordsToSetModal
           set={activeSet}
-          allWords={allWordsForModal.length > 0 ? allWordsForModal : allWords}
+          allWords={allWordsForModal}
+          isLoadingWords={allWordsQuery.isLoading}
           onAdd={(wordIds) => addToSetMutation.mutate({ setId: activeSet.id, wordIds })}
           onClose={() => setShowAddToSetModal(false)}
           isPending={addToSetMutation.isPending}
