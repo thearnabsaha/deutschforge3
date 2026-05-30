@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { Layout } from "../components/layout";
+import { Plus, X, FolderPlus, Search, Check, Folder } from "lucide-react";
 
 type Word = {
   id: string;
@@ -43,17 +44,151 @@ const GENDER_COLOR: Record<string, string> = {
   das: "bg-green-100 text-green-700",
 };
 
+// ── Word picker modal for adding words to a set ───────────────────────────────
+function AddWordsToSetModal({
+  set,
+  allWords,
+  onAdd,
+  onClose,
+  isPending,
+}: {
+  set: WordSet;
+  allWords: Word[];
+  onAdd: (wordIds: string[]) => void;
+  onClose: () => void;
+  isPending: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const alreadyIn = new Set(set.wordIds);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return allWords.filter(
+      (w) =>
+        !alreadyIn.has(w.id) &&
+        (q === "" ||
+          (w.displayGerman ?? w.german).toLowerCase().includes(q) ||
+          w.english.toLowerCase().includes(q))
+    );
+  }, [search, allWords, set.wordIds]);
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[80vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="font-semibold text-gray-900">Add words to "{set.name}"</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {filtered.length} available · {selected.size} selected
+            </p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-5 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+            <Search size={14} className="text-gray-400 flex-shrink-0" />
+            <input
+              autoFocus
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search words..."
+              className="flex-1 bg-transparent text-sm outline-none text-gray-700 placeholder-gray-400"
+            />
+          </div>
+        </div>
+
+        {/* Word list */}
+        <div className="flex-1 overflow-y-auto px-3 py-2">
+          {filtered.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              {search ? "No matches" : "All words already in this set"}
+            </div>
+          ) : (
+            filtered.map((word) => {
+              const isSelected = selected.has(word.id);
+              return (
+                <button
+                  key={word.id}
+                  onClick={() => toggle(word.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-left transition-colors ${
+                    isSelected ? "bg-indigo-50 border border-indigo-200" : "hover:bg-gray-50 border border-transparent"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isSelected ? "bg-indigo-600 border-indigo-600" : "border-gray-300"
+                    }`}
+                  >
+                    {isSelected && <Check size={10} strokeWidth={3} className="text-white" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {word.displayGerman ?? word.german}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate">{word.english}</p>
+                  </div>
+                  {word.cefrLevel && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${CEFR_COLORS[word.cefrLevel] ?? "bg-gray-100 text-gray-600"}`}>
+                      {word.cefrLevel}
+                    </span>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-gray-100 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onAdd([...selected])}
+            disabled={selected.size === 0 || isPending}
+            className="flex-1 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          >
+            {isPending ? "Adding..." : `Add ${selected.size > 0 ? selected.size : ""} word${selected.size !== 1 ? "s" : ""}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function WordsPage() {
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
   const [pos, setPos] = useState("all");
   const [addError, setAddError] = useState("");
   const [addSuccess, setAddSuccess] = useState("");
-  const [activeSetId, setActiveSetId] = useState<string | null>(null); // null = "All Words"
+  const [activeSetId, setActiveSetId] = useState<string | null>(null);
   const [newSetName, setNewSetName] = useState("");
   const [showNewSetInput, setShowNewSetInput] = useState(false);
   const [expandedWordId, setExpandedWordId] = useState<string | null>(null);
-  const [addToSetWordId, setAddToSetWordId] = useState<string | null>(null);
+  const [showAddToSetModal, setShowAddToSetModal] = useState(false);
+  // Per-word set dropdown (in All Words view)
+  const [setDropdownWordId, setSetDropdownWordId] = useState<string | null>(null);
   const qc = useQueryClient();
 
   // ─── Queries ────────────────────────────────────────────────────
@@ -67,6 +202,17 @@ export default function WordsPage() {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
+  });
+
+  // Fetch ALL words for the modal picker (no filters)
+  const allWordsQuery = useQuery({
+    queryKey: ["words-all"],
+    queryFn: async () => {
+      const res = await api.words.$get({ query: {} });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: showAddToSetModal,
   });
 
   const setsQuery = useQuery({
@@ -87,6 +233,7 @@ export default function WordsPage() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["words"] });
+      qc.invalidateQueries({ queryKey: ["words-all"] });
       qc.invalidateQueries({ queryKey: ["stats"] });
       qc.invalidateQueries({ queryKey: ["review-count"] });
       setInput("");
@@ -108,6 +255,7 @@ export default function WordsPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["words"] });
+      qc.invalidateQueries({ queryKey: ["words-all"] });
       qc.invalidateQueries({ queryKey: ["stats"] });
       qc.invalidateQueries({ queryKey: ["sets"] });
     },
@@ -145,19 +293,20 @@ export default function WordsPage() {
   });
 
   const addToSetMutation = useMutation({
-    mutationFn: async ({ setId, wordId }: { setId: string; wordId: string }) => {
+    mutationFn: async ({ setId, wordIds }: { setId: string; wordIds: string[] }) => {
       const res = await fetch(`/api/sets/${setId}/words`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wordIds: [wordId] }),
+        body: JSON.stringify({ wordIds }),
       });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sets"] });
-      setAddToSetWordId(null);
+      setShowAddToSetModal(false);
+      setSetDropdownWordId(null);
     },
   });
 
@@ -170,23 +319,33 @@ export default function WordsPage() {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["sets"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sets"] });
+      setSetDropdownWordId(null);
+    },
   });
 
   // ─── Derived data ───────────────────────────────────────────────
   const allWords: Word[] = wordsQuery.data?.words ?? [];
+  const allWordsForModal: Word[] = allWordsQuery.data?.words ?? [];
   const sets: WordSet[] = setsQuery.data?.sets ?? [];
-
-  // If a set is active, filter words to only those in the set
   const activeSet = sets.find((s) => s.id === activeSetId) ?? null;
   const activeSetWordIds = new Set(activeSet?.wordIds ?? []);
-
-  const words = activeSet
-    ? allWords.filter((w) => activeSetWordIds.has(w.id))
-    : allWords;
+  const words = activeSet ? allWords.filter((w) => activeSetWordIds.has(w.id)) : allWords;
 
   return (
     <Layout>
+      {/* Add words to set modal */}
+      {showAddToSetModal && activeSet && (
+        <AddWordsToSetModal
+          set={activeSet}
+          allWords={allWordsForModal.length > 0 ? allWordsForModal : allWords}
+          onAdd={(wordIds) => addToSetMutation.mutate({ setId: activeSet.id, wordIds })}
+          onClose={() => setShowAddToSetModal(false)}
+          isPending={addToSetMutation.isPending}
+        />
+      )}
+
       <div className="max-w-5xl flex gap-6">
         {/* ── Left: Sets Sidebar ──────────────────────────────── */}
         <div className="w-52 flex-shrink-0">
@@ -197,9 +356,7 @@ export default function WordsPage() {
             <button
               onClick={() => setActiveSetId(null)}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium mb-1 transition-colors ${
-                !activeSetId
-                  ? "bg-indigo-50 text-indigo-700"
-                  : "text-gray-600 hover:bg-gray-100"
+                !activeSetId ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               All Words
@@ -212,9 +369,7 @@ export default function WordsPage() {
                 <button
                   onClick={() => setActiveSetId(set.id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium mb-1 transition-colors pr-8 ${
-                    activeSetId === set.id
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-600 hover:bg-gray-100"
+                    activeSetId === set.id ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   <span className="truncate block">{set.name}</span>
@@ -222,10 +377,10 @@ export default function WordsPage() {
                 </button>
                 <button
                   onClick={() => deleteSetMutation.mutate(set.id)}
-                  className="absolute right-2 top-2.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all text-base leading-none"
+                  className="absolute right-2 top-2.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                   title="Delete set"
                 >
-                  ×
+                  <X size={14} />
                 </button>
               </div>
             ))}
@@ -264,9 +419,10 @@ export default function WordsPage() {
             ) : (
               <button
                 onClick={() => setShowNewSetInput(true)}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors mt-1"
+                className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors mt-1 flex items-center gap-1.5"
               >
-                + New Set
+                <FolderPlus size={14} />
+                New Set
               </button>
             )}
           </div>
@@ -274,18 +430,32 @@ export default function WordsPage() {
 
         {/* ── Right: Main Content ─────────────────────────────── */}
         <div className="flex-1 min-w-0">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {activeSet ? activeSet.name : "My Words"}
-            </h1>
-            <p className="text-gray-500 mt-1">
-              {activeSet
-                ? `${words.length} word${words.length !== 1 ? "s" : ""} in this set`
-                : "Add German words and let AI fetch their meaning"}
-            </p>
+          {/* Header */}
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {activeSet ? activeSet.name : "My Words"}
+              </h1>
+              <p className="text-gray-500 mt-1 text-sm">
+                {activeSet
+                  ? `${words.length} word${words.length !== 1 ? "s" : ""} in this set`
+                  : "Add German words and let AI fetch their meaning"}
+              </p>
+            </div>
+
+            {/* Add words to set button — shown when viewing a set */}
+            {activeSet && (
+              <button
+                onClick={() => setShowAddToSetModal(true)}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+              >
+                <Plus size={15} />
+                Add Words
+              </button>
+            )}
           </div>
 
-          {/* Add words (only shown in All Words view) */}
+          {/* Add words input (only in All Words view) */}
           {!activeSet && (
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
               <h2 className="font-semibold text-gray-800 mb-3">Add Words</h2>
@@ -316,22 +486,23 @@ export default function WordsPage() {
 
           {/* Filters */}
           <div className="flex gap-3 mb-4 flex-wrap">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search words..."
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48"
-            />
+            <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 w-48">
+              <Search size={14} className="text-gray-400 flex-shrink-0" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="flex-1 text-sm outline-none text-gray-700 placeholder-gray-400"
+              />
+            </div>
             <div className="flex gap-2 flex-wrap">
               {POS_OPTIONS.map((p) => (
                 <button
                   key={p}
                   onClick={() => setPos(p)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
-                    pos === p
-                      ? "bg-indigo-600 text-white"
-                      : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
+                    pos === p ? "bg-indigo-600 text-white" : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   {p}
@@ -346,24 +517,28 @@ export default function WordsPage() {
           ) : words.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
               <div className="text-5xl mb-3">{activeSet ? "📂" : "📚"}</div>
-              <p>
-                {activeSet
-                  ? "No words in this set yet. Add words from All Words view."
-                  : "No words yet. Add some German words above!"}
+              <p className="mb-4">
+                {activeSet ? "No words in this set yet." : "No words yet. Add some German words above!"}
               </p>
+              {activeSet && (
+                <button
+                  onClick={() => setShowAddToSetModal(true)}
+                  className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <Plus size={15} />
+                  Add Words to Set
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
               {words.map((word: Word) => {
                 const isExpanded = expandedWordId === word.id;
-                const isAddingToSet = addToSetWordId === word.id;
                 const wordInSets = sets.filter((s) => s.wordIds.includes(word.id));
+                const isDropdownOpen = setDropdownWordId === word.id;
 
                 return (
-                  <div
-                    key={word.id}
-                    className="bg-white rounded-xl border border-gray-200 overflow-hidden"
-                  >
+                  <div key={word.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                     {/* Main row */}
                     <div className="p-4 flex items-start justify-between gap-4">
                       <button
@@ -390,7 +565,8 @@ export default function WordsPage() {
                             </span>
                           )}
                           {wordInSets.length > 0 && (
-                            <span className="text-xs text-indigo-400">
+                            <span className="text-xs text-indigo-400 flex items-center gap-1">
+                              <Folder size={10} />
                               {wordInSets.map((s) => s.name).join(", ")}
                             </span>
                           )}
@@ -399,63 +575,82 @@ export default function WordsPage() {
                       </button>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Add to set button */}
-                        <button
-                          onClick={() => setAddToSetWordId(isAddingToSet ? null : word.id)}
-                          className="text-xs text-gray-400 hover:text-indigo-500 transition-colors px-1.5 py-1 rounded"
-                          title="Add to set"
-                        >
-                          📂
-                        </button>
-                        {/* Delete */}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {/* If viewing a set — show inline remove button */}
+                        {activeSet ? (
+                          <button
+                            onClick={() => removeFromSetMutation.mutate({ setId: activeSet.id, wordId: word.id })}
+                            disabled={removeFromSetMutation.isPending}
+                            className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors flex items-center gap-1"
+                            title="Remove from set"
+                          >
+                            <X size={12} />
+                            Remove
+                          </button>
+                        ) : (
+                          /* In All Words view — folder dropdown to assign to sets */
+                          <div className="relative">
+                            <button
+                              onClick={() => setSetDropdownWordId(isDropdownOpen ? null : word.id)}
+                              className={`p-1.5 rounded-lg border transition-colors ${
+                                isDropdownOpen || wordInSets.length > 0
+                                  ? "border-indigo-300 text-indigo-500 bg-indigo-50"
+                                  : "border-gray-200 text-gray-400 hover:border-indigo-300 hover:text-indigo-500"
+                              }`}
+                              title="Manage sets"
+                            >
+                              <Folder size={14} />
+                            </button>
+
+                            {/* Set dropdown */}
+                            {isDropdownOpen && (
+                              <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-xl shadow-lg p-3 min-w-[160px]">
+                                <p className="text-xs text-gray-400 mb-2 font-medium">Add to set:</p>
+                                {sets.length === 0 ? (
+                                  <p className="text-xs text-gray-400 py-1">No sets yet</p>
+                                ) : (
+                                  sets.map((set) => {
+                                    const inSet = set.wordIds.includes(word.id);
+                                    return (
+                                      <button
+                                        key={set.id}
+                                        onClick={() => {
+                                          if (inSet) {
+                                            removeFromSetMutation.mutate({ setId: set.id, wordId: word.id });
+                                          } else {
+                                            addToSetMutation.mutate({ setId: set.id, wordIds: [word.id] });
+                                          }
+                                        }}
+                                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-left transition-colors mb-0.5 ${
+                                          inSet
+                                            ? "bg-indigo-50 text-indigo-700"
+                                            : "text-gray-600 hover:bg-gray-50"
+                                        }`}
+                                      >
+                                        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 ${inSet ? "bg-indigo-600 border-indigo-600" : "border-gray-300"}`}>
+                                          {inSet && <Check size={8} strokeWidth={3} className="text-white" />}
+                                        </div>
+                                        <span className="truncate">{set.name}</span>
+                                      </button>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Delete word */}
                         <button
                           onClick={() => deleteMutation.mutate(word.id)}
                           disabled={deleteMutation.isPending}
-                          className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
+                          className="p-1.5 rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors"
                           title="Delete word"
                         >
-                          ×
+                          <X size={14} />
                         </button>
                       </div>
                     </div>
-
-                    {/* Set picker dropdown */}
-                    {isAddingToSet && sets.length > 0 && (
-                      <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                        <p className="text-xs text-gray-400 mb-2">Add to set:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {sets.map((set) => {
-                            const inSet = set.wordIds.includes(word.id);
-                            return (
-                              <button
-                                key={set.id}
-                                onClick={() => {
-                                  if (inSet) {
-                                    removeFromSetMutation.mutate({ setId: set.id, wordId: word.id });
-                                  } else {
-                                    addToSetMutation.mutate({ setId: set.id, wordId: word.id });
-                                  }
-                                }}
-                                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                                  inSet
-                                    ? "bg-indigo-100 border-indigo-300 text-indigo-700"
-                                    : "bg-white border-gray-300 text-gray-600 hover:border-indigo-300"
-                                }`}
-                              >
-                                {inSet ? "✓ " : ""}{set.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {isAddingToSet && sets.length === 0 && (
-                      <div className="border-t border-gray-100 px-4 py-3 bg-gray-50 text-xs text-gray-400">
-                        No sets yet — create one in the sidebar.
-                      </div>
-                    )}
 
                     {/* Expanded details */}
                     {isExpanded && (
@@ -485,6 +680,11 @@ export default function WordsPage() {
           )}
         </div>
       </div>
+
+      {/* Close set dropdown on outside click */}
+      {setDropdownWordId && (
+        <div className="fixed inset-0 z-10" onClick={() => setSetDropdownWordId(null)} />
+      )}
     </Layout>
   );
 }
