@@ -4,13 +4,16 @@ import { api } from "../lib/api";
 import { Layout } from "../components/layout";
 import { useAuth } from "../hooks/use-auth";
 import { BADGE_DEFS } from "./badge-defs";
-import { Flame, Trophy, Star, BookOpen, RotateCcw, Target, Award } from "lucide-react";
+import { Flame, Trophy, Star, BookOpen, RotateCcw, Target, Award, AlertTriangle } from "lucide-react";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [goalInput, setGoalInput] = useState("");
   const [goalMsg, setGoalMsg] = useState("");
+  const [resetProgressConfirm, setResetProgressConfirm] = useState(false);
+  const [resetVocabConfirm, setResetVocabConfirm] = useState(false);
+  const [resetMsg, setResetMsg] = useState("");
 
   const statsQuery = useQuery({
     queryKey: ["stats"],
@@ -27,6 +30,41 @@ export default function ProfilePage() {
       const res = await fetch("/api/stats/badges", { credentials: "include" });
       if (!res.ok) throw new Error("Failed");
       return res.json() as Promise<{ badges: Array<{ key: string; earned: boolean; earnedAt: string | null }> }>;
+    },
+  });
+
+  const resetProgressMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/stats/reset", { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stats"] });
+      qc.invalidateQueries({ queryKey: ["badges"] });
+      qc.invalidateQueries({ queryKey: ["words"] });
+      setResetProgressConfirm(false);
+      setResetMsg("Progress reset. Your words are still here.");
+      setTimeout(() => setResetMsg(""), 5000);
+    },
+  });
+
+  const resetVocabMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/words/reset", { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: async () => {
+      // Also reset stats
+      await fetch("/api/stats/reset", { method: "DELETE", credentials: "include" });
+      qc.invalidateQueries({ queryKey: ["words"] });
+      qc.invalidateQueries({ queryKey: ["stats"] });
+      qc.invalidateQueries({ queryKey: ["badges"] });
+      qc.invalidateQueries({ queryKey: ["sets"] });
+      setResetVocabConfirm(false);
+      setResetMsg("All vocabulary and progress cleared.");
+      setTimeout(() => setResetMsg(""), 5000);
     },
   });
 
@@ -160,6 +198,89 @@ export default function ProfilePage() {
             {goalMsg && <p className="text-green-600 text-sm mt-2">{goalMsg}</p>}
           </div>
         )}
+
+        {/* Reset section */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h3 className="font-semibold text-gray-800 mb-1 flex items-center gap-2">
+            <AlertTriangle size={16} className="text-orange-500" />
+            Danger Zone
+          </h3>
+          <p className="text-xs text-gray-400 mb-4">These actions are irreversible.</p>
+
+          {resetMsg && (
+            <div className="mb-4 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+              {resetMsg}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {/* Reset Progress */}
+            <div className="flex items-start justify-between gap-4 p-4 rounded-lg border border-gray-100 bg-gray-50">
+              <div>
+                <p className="text-sm font-medium text-gray-800">Reset Progress</p>
+                <p className="text-xs text-gray-400 mt-0.5">Clears XP, streak, reviews, badges. Your words stay.</p>
+              </div>
+              {!resetProgressConfirm ? (
+                <button
+                  onClick={() => setResetProgressConfirm(true)}
+                  className="flex-shrink-0 text-sm px-4 py-2 rounded-lg border border-orange-300 text-orange-600 hover:bg-orange-50 transition-colors"
+                >
+                  Reset Progress
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs text-orange-600 font-medium">Sure?</span>
+                  <button
+                    onClick={() => resetProgressMutation.mutate()}
+                    disabled={resetProgressMutation.isPending}
+                    className="text-sm px-3 py-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-60 transition-colors"
+                  >
+                    {resetProgressMutation.isPending ? "Resetting..." : "Yes, reset"}
+                  </button>
+                  <button
+                    onClick={() => setResetProgressConfirm(false)}
+                    className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Reset Vocabulary */}
+            <div className="flex items-start justify-between gap-4 p-4 rounded-lg border border-red-100 bg-red-50">
+              <div>
+                <p className="text-sm font-medium text-gray-800">Reset Vocabulary</p>
+                <p className="text-xs text-gray-400 mt-0.5">Deletes ALL words, cards, sets, and resets progress. Fresh start.</p>
+              </div>
+              {!resetVocabConfirm ? (
+                <button
+                  onClick={() => setResetVocabConfirm(true)}
+                  className="flex-shrink-0 text-sm px-4 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-100 transition-colors"
+                >
+                  Reset All
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs text-red-600 font-medium">This deletes everything!</span>
+                  <button
+                    onClick={() => resetVocabMutation.mutate()}
+                    disabled={resetVocabMutation.isPending}
+                    className="text-sm px-3 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:opacity-60 transition-colors"
+                  >
+                    {resetVocabMutation.isPending ? "Deleting..." : "Yes, delete all"}
+                  </button>
+                  <button
+                    onClick={() => setResetVocabConfirm(false)}
+                    className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Badges */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">

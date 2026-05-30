@@ -268,9 +268,12 @@ const app = new Hono<AppEnv>()
     return c.json({ added: addedWords, skipped: skippedWords, newBadges: newBadgeKeys }, 200);
   })
 
-  // DELETE /api/words/reset - delete ALL words, cards for the user
+  // DELETE /api/words/reset - delete ALL words, cards, sets for the user
   .delete("/reset", async (c) => {
     const user = c.get("user")!;
+    // Order matters: delete members before sets, cards before words
+    await db.delete(schema.wordSetMembers).where(eq(schema.wordSetMembers.userId, user.id));
+    await db.delete(schema.wordSets).where(eq(schema.wordSets.userId, user.id));
     await db.delete(schema.cards).where(eq(schema.cards.userId, user.id));
     await db.delete(schema.words).where(eq(schema.words.userId, user.id));
     return c.json({ success: true }, 200);
