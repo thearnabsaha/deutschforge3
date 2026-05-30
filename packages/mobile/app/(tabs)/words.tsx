@@ -26,8 +26,9 @@ import {
   getWords,
   addWordOffline,
   deleteWordLocally,
+
 } from "../../lib/offlineStore";
-import { subscribeSyncState } from "../../lib/syncEngine";
+import { subscribeSyncState, forceSyncNow } from "../../lib/syncEngine";
 import { speakGerman, stopSpeaking } from "../../lib/tts";
 import { Volume2, X, Trash2, Inbox, Plus, Filter, Lightbulb, ChevronRight, GraduationCap, Library } from "lucide-react-native";
 import { useTheme } from "../../lib/theme";
@@ -787,6 +788,11 @@ function VocabScreen() {
       // Refresh local list immediately
       queryClient.invalidateQueries({ queryKey: ["words"] });
       setLastResult({ added: added.length, skipped: 0, badges: [] });
+      // Instant sync — push to server right away
+      forceSyncNow(userId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["words"] });
+        queryClient.invalidateQueries({ queryKey: ["stats"] });
+      }).catch(() => {});
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to add words");
     } finally {
@@ -799,6 +805,8 @@ function VocabScreen() {
     try {
       deleteWordLocally(userId, id);
       queryClient.invalidateQueries({ queryKey: ["words"] });
+      // Instant sync
+      forceSyncNow(userId).catch(() => {});
     } catch {
       Alert.alert("Error", "Failed to delete word");
     }

@@ -163,14 +163,11 @@ export default function ProfileScreen() {
         text: "Log Out",
         style: "destructive",
         onPress: async () => {
-          authState.setLoggingOut(true);
           try {
             await authClient.signOut();
           } catch (_) {}
           queryClient.clear();
-          router.replace("/(auth)/login");
-          // Clear flag after session has time to settle
-          setTimeout(() => authState.setLoggingOut(false), 3000);
+          // loggingOut stays false — let AuthGate's session→null effect handle redirect naturally
         },
       },
     ]);

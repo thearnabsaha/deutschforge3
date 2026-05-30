@@ -19,7 +19,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useFocusEffect } from "expo-router";
 import { authClient } from "../../lib/auth";
 import { getWords, addWordOffline } from "../../lib/offlineStore";
-import { subscribeSyncState } from "../../lib/syncEngine";
+import { subscribeSyncState, forceSyncNow } from "../../lib/syncEngine";
 import {
   Plus,
   Layers,
@@ -200,6 +200,7 @@ function CreateSetModal({ visible, onClose, onCreated, allWords, userId }: {
         setStatus("Adding words to library…");
         const added = addWordOffline(userId, wordInput.trim());
         queryClient.invalidateQueries({ queryKey: ["words"] });
+        forceSyncNow(userId).catch(() => {});
         // Shape to StudyWord-compatible (minimal — set only needs IDs)
         addedWords = added.map((w) => ({
           id: w.id,

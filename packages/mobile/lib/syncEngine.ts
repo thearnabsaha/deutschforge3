@@ -200,6 +200,14 @@ async function pullFromServer(userId: string): Promise<void> {
 
 let _syncInProgress = false;
 
+/**
+ * Force an immediate sync, bypassing any external throttle.
+ * Skips if a sync is already in progress (deduplicated).
+ */
+export async function forceSyncNow(userId: string): Promise<void> {
+  return runSync(userId);
+}
+
 export async function runSync(userId: string): Promise<void> {
   if (_syncInProgress) return;
   _syncInProgress = true;

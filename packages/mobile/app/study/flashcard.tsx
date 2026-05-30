@@ -19,6 +19,7 @@ import { DeutschForgeMascot } from "../../components/DeutschForgeMascot";
 import { useTheme } from "../../lib/theme";
 import { authClient } from "../../lib/auth";
 import { getDueCards, submitReviewOffline } from "../../lib/offlineStore";
+import { forceSyncNow } from "../../lib/syncEngine";
 import type { StudyWord } from "../(tabs)/study";
 
 const RATING_COLORS = { 1: "#FF4B4B", 2: "#FF9F1C", 3: "#58CC02", 4: "#1CB0F6" } as const;
@@ -266,6 +267,11 @@ export default function FlashcardMode() {
       );
       setXpGained((prev) => prev + (result.xpEarned ?? 0));
       queryClient.invalidateQueries({ queryKey: ["stats"] });
+      // Instant sync after each rating
+      forceSyncNow(userId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["stats"] });
+        queryClient.invalidateQueries({ queryKey: ["review-count"] });
+      }).catch(() => {});
     } catch (err) {
       console.warn("[flashcard] submitReviewOffline error:", err);
     }
