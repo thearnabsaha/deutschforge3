@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { api } from "../../lib/api";
 import { authClient } from "../../lib/auth";
 import { useTheme } from "../../lib/theme";
@@ -1680,7 +1680,7 @@ function HomeScreen() {
       if (!res.ok) throw new Error("stats failed");
       return res.json();
     },
-    staleTime: 90_000,
+    staleTime: 15_000,
     gcTime: 15 * 60_000,
   });
 
@@ -1691,9 +1691,16 @@ function HomeScreen() {
       if (!res.ok) throw new Error("dashboard failed");
       return res.json();
     },
-    staleTime: 3 * 60_000,
+    staleTime: 15_000,
     gcTime: 15 * 60_000,
   });
+
+  // Refetch stats every time this tab comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    }, [queryClient])
+  );
 
   const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["stats"] });

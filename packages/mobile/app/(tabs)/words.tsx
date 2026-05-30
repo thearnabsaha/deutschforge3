@@ -1,4 +1,5 @@
 import React, { useState, useCallback, memo, useRef, useEffect, useMemo } from "react";
+import { useFocusEffect } from "expo-router";
 import GrammarScreen from "../grammar";
 import LearnScreen from "../learn";
 import { useAppMode } from "../../lib/appMode";
@@ -734,6 +735,13 @@ function VocabScreen() {
     });
     return unsub;
   }, []);
+
+  // Bump on tab focus so coming back always shows fresh local data
+  useFocusEffect(
+    useCallback(() => {
+      setSyncVersion((v) => v + 1);
+    }, [])
+  );
 
   const genderFilterApplicable = selectedPos === "all" || POS_WITH_GENDER.has(selectedPos);
 

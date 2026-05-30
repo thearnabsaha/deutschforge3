@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { authClient } from "../../lib/auth";
 import { getWords, addWordOffline } from "../../lib/offlineStore";
 import { subscribeSyncState } from "../../lib/syncEngine";
@@ -462,6 +462,13 @@ function StudyScreenInner() {
     });
     return unsub;
   }, []);
+
+  // Also bump syncVersion every time this tab gains focus so stale data is never shown
+  useFocusEffect(
+    useCallback(() => {
+      setSyncVersion((v) => v + 1);
+    }, [])
+  );
 
   const wordsQuery = useQuery({
     queryKey: ["words", "study-hub", syncVersion, userId],

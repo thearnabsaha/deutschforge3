@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "../lib/auth";
 import { authState } from "../lib/authState";
 import { ActivityIndicator, View, AppState, type AppStateStatus } from "react-native";
@@ -43,13 +43,21 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const router = useRouter();
   const lastSyncRef = useRef<number>(0);
+  const qc = useQueryClient();
 
   // Trigger sync when online + session available
   const maybeSync = (userId: string) => {
     const now = Date.now();
-    if (now - lastSyncRef.current < 30_000) return; // throttle 30s
+    if (now - lastSyncRef.current < 10_000) return; // throttle 10s
     lastSyncRef.current = now;
-    runSync(userId).catch(() => {});
+    runSync(userId)
+      .then(() => {
+        // After sync completes, invalidate server-backed queries so UI picks up fresh data
+        qc.invalidateQueries({ queryKey: ["stats"] });
+        qc.invalidateQueries({ queryKey: ["review-count"] });
+        qc.invalidateQueries({ queryKey: ["words"] });
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {
