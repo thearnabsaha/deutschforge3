@@ -27,8 +27,9 @@ import {
   ArrowLeft,
 } from "lucide-react-native";
 import { api, baseUrl } from "../../lib/api";
-import { authState } from "../../lib/authState";
 import { authClient } from "../../lib/auth";
+import { clearLocalData } from "../../lib/localDb";
+import { clearQueue } from "../../lib/syncQueue";
 import { useTheme } from "../../lib/theme";
 import { useAppMode } from "../../lib/appMode";
 import { Storage } from "../../lib/storage";
@@ -166,12 +167,15 @@ export default function ProfileScreen() {
           try {
             await authClient.signOut();
           } catch (_) {}
+          // Clear local SQLite data + pending sync queue so next user starts fresh
+          clearLocalData();
+          clearQueue();
           queryClient.clear();
-          // loggingOut stays false — let AuthGate's session→null effect handle redirect naturally
+          // AuthGate's session→null effect handles the redirect naturally
         },
       },
     ]);
-  }, [queryClient, router]);
+  }, [queryClient]);
 
   const handleResetVocabulary = useCallback(() => {
     Alert.alert(

@@ -108,3 +108,16 @@ export function initLocalDb(): void {
   db.execSync(`CREATE INDEX IF NOT EXISTS idx_cards_due ON cards(userId, due);`);
   db.execSync(`CREATE INDEX IF NOT EXISTS idx_reviews_userId ON reviews(userId);`);
 }
+
+/** Wipe all user data from local DB on logout. */
+export function clearLocalData(): void {
+  try {
+    const db = getDb();
+    db.execSync(`DELETE FROM words;`);
+    db.execSync(`DELETE FROM cards;`);
+    db.execSync(`DELETE FROM reviews;`);
+    db.execSync(`DELETE FROM userStats;`);
+  } catch (e) {
+    console.warn("[db] clearLocalData failed", e);
+  }
+}
