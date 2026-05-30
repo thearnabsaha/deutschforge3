@@ -4,7 +4,7 @@ import { eq, and, count, like, or, sql } from "drizzle-orm";
 import { db } from "../database";
 import * as schema from "../database/schema";
 import { requireAuth } from "../middleware/auth";
-import { fetchWordInfo, stripArticle } from "../lib/wiktionary";
+import { fetchWordInfo, stripArticle, stripReflexive } from "../lib/wiktionary";
 import { enrichWordWithAI } from "../lib/ai-enrichment";
 import { checkBadges } from "../lib/gamification";
 import { createId } from "@paralleldrive/cuid2";
@@ -101,21 +101,32 @@ const app = new Hono<AppEnv>()
 
     for (const raw of wordList) {
       // Strip article prefix: "der Hund" → { article: "der", base: "Hund" }
-      const { article: inputArticle, base } = stripArticle(raw);
+      const { article: inputArticle, base: articleStripped } = stripArticle(raw);
 
-      // Canonical key for dedup (lowercase base word)
-      const canonicalKey = base.toLowerCase();
+      // Strip reflexive prefix: "sich waschen" → { isReflexive: true, base: "waschen" }
+      const { isReflexive, base, phrasal } = stripReflexive(articleStripped);
+
+      // Canonical key for dedup — use full original (no article) to preserve "sich waschen" vs "waschen"
+      const canonicalKey = articleStripped.toLowerCase();
 
       if (existingSet.has(canonicalKey)) {
         skippedWords.push(raw);
         continue;
       }
 
-      // Fetch word info using the base word (no article prefix)
+      // Fetch word info using the base verb (wiktionary doesn't know "sich waschen")
       const info = await fetchWordInfo(base);
 
+      // For reflexive verbs wiktionary will return verb POS — force it if it didn't
+      const effectivePOS = isReflexive ? "verb" : info.partOfSpeech;
+
       // AI enrichment: better meaning, examples, notes (runs once at add time)
-      const aiData = await enrichWordWithAI(base, info.partOfSpeech, info.english !== base ? info.english : null);
+      const aiData = await enrichWordWithAI(
+        base,
+        effectivePOS,
+        info.english !== base ? info.english : null,
+        { isReflexive, phrasal, originalInput: articleStripped },
+      );
 
       // If user supplied article but wiktionary didn't find gender, use user's article
       let gender = info.gender;
@@ -129,10 +140,15 @@ const app = new Hono<AppEnv>()
         : gender === "das" ? "neutral"
         : info.genderCategory;
 
-      // Build display form: if noun with gender, show "der/die/das Word"
-      const displayGerman = (info.partOfSpeech === "noun" && gender)
-        ? `${gender} ${base}`
-        : base;
+      // Build display form:
+      // - reflexive verb: "sich waschen", "sich etwas kaufen" (preserve original input)
+      // - noun with gender: "der Hund"
+      // - otherwise: base word
+      const displayGerman = isReflexive
+        ? articleStripped                                    // preserve "sich waschen" / "sich etwas kaufen"
+        : (effectivePOS === "noun" && gender)
+          ? `${gender} ${base}`
+          : base;
 
       // Merge: AI data wins over wiktionary for meaning/examples (better quality)
       const finalEnglish = aiData?.english || info.english || base;
@@ -146,10 +162,10 @@ const app = new Hono<AppEnv>()
         .values({
           id: wordId,
           userId: user.id,
-          german: base,           // canonical, no article
+          german: articleStripped,   // canonical: "sich waschen" / "Hund" (no der/die/das)
           displayGerman,
           english: finalEnglish,
-          partOfSpeech: info.partOfSpeech,
+          partOfSpeech: effectivePOS,
           gender,
           genderCategory,
           cefrLevel: finalCefr,
@@ -160,7 +176,7 @@ const app = new Hono<AppEnv>()
         })
         .returning();
 
-      // Mark as added in dedup set
+      // Mark as added in dedup set (use full canonical: "sich waschen")
       existingSet.add(canonicalKey);
 
       // Create FSRS card for this word

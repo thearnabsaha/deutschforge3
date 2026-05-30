@@ -76,6 +76,29 @@ export const userStats = sqliteTable("user_stats", {
   lastReviewDate: text("last_review_date"), // YYYY-MM-DD
 });
 
+// Word sets — named groups of words (e.g. "Daily Routine", "Food")
+export const wordSets = sqliteTable("word_sets", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
+}, (t) => [
+  index("word_sets_user_id_idx").on(t.userId),
+]);
+
+// Join table: which words belong to which set
+export const wordSetMembers = sqliteTable("word_set_members", {
+  id: text("id").primaryKey(),
+  setId: text("set_id").notNull(),
+  wordId: text("word_id").notNull(),
+  userId: text("user_id").notNull(),
+  addedAt: integer("added_at").notNull().$defaultFn(() => Date.now()),
+}, (t) => [
+  index("word_set_members_set_id_idx").on(t.setId),
+  index("word_set_members_word_id_idx").on(t.wordId),
+  index("word_set_members_user_id_idx").on(t.userId),
+]);
+
 // Earned badges
 export const badges = sqliteTable("badges", {
   id: text("id").primaryKey(),

@@ -89,6 +89,26 @@ export function stripArticle(raw: string): { article: string | null; base: strin
   return { article: null, base: trimmed };
 }
 
+/**
+ * Strip "sich" prefix from reflexive verbs.
+ * "sich waschen" → { isReflexive: true, base: "waschen" }
+ * "sich etwas kaufen" → { isReflexive: true, base: "etwas kaufen", phrasal: true }
+ */
+export function stripReflexive(raw: string): { isReflexive: boolean; base: string; phrasal: boolean } {
+  const trimmed = raw.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith("sich ")) {
+    const rest = trimmed.slice(5).trim(); // remove "sich "
+    // phrasal if there are more words after stripping "sich" and the first verb token
+    const tokens = rest.split(/\s+/);
+    const phrasal = tokens.length > 1;
+    // For wiktionary lookup use only the main verb (last meaningful token or first)
+    const verbBase = tokens[0];
+    return { isReflexive: true, base: verbBase, phrasal };
+  }
+  return { isReflexive: false, base: trimmed, phrasal: false };
+}
+
 export async function fetchWordInfo(germanWord: string): Promise<WordInfo> {
   try {
     // Use the English Wiktionary API to get German word data

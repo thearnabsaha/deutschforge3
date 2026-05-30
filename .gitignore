@@ -75,3 +75,5 @@ packages/mobile/scripts/*
 packages/web/dist/
 packages/web/dist/server/
 GITHUB_TOKEN=*
+.env.git
+packages/mobile/.env.eas

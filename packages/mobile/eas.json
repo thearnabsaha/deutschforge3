@@ -14,11 +14,9 @@
       "android": { "buildType": "apk" },
       "ios": { "distribution": "internal" }
     },
-    "sideload": {
+    "simulator": {
       "ios": {
-        "simulator": false,
-        "distribution": "internal",
-        "enterpriseProvisioning": "adhoc"
+        "simulator": true
       }
     },
     "production": {
